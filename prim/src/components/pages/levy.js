@@ -17,7 +17,7 @@ const Levy = () => {
                 db,
                 'levy'
             );
-            const q = query(levyCollectionRef, orderBy('date', 'desc')); // Order by date descending
+            const q = query(levyCollectionRef, orderBy('date', 'desc')); // Ordered by date descending
             const querySnapshot = await getDocs(q);
             const transactions = querySnapshot.docs.map((doc) => ({
                 id: doc.id,

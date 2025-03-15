@@ -9,7 +9,7 @@ const Layout = ({ children }) => {
             {/* Sidebar */}
             <aside className="bg-gray-800 text-white w-64 flex flex-col">
                 <div className="p-4">
-                    <h1 className="text-xl font-semibold">Prim</h1> {/* Replace with your logo/app name */}
+                    <h1 className="text-xl font-semibold">Prim</h1> 
                 </div>
                 <nav className="flex-1 p-4">
                     <ul className="space-y-2">
@@ -96,7 +96,7 @@ const Layout = ({ children }) => {
                                 viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                {/* Notification Icon (Replace with your icon) */}
+                                
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -105,13 +105,13 @@ const Layout = ({ children }) => {
                                 />
                             </svg>
                         </Link>
-                        <div className="flex items-center">
+                        <div className="flex items-center"> {/*this is all placeholder data*/}
                             <img
                                 src="https://via.placeholder.com/40"
                                 alt="User Avatar"
                                 className="w-10 h-10 rounded-full mr-2"
                             />
-                            <span>Tom Cook</span>
+                            <span>Simon Mkaro</span>
                         </div>
                     </div>
                 </header>
