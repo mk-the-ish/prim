@@ -35,7 +35,12 @@ const Layout = ({ children }) => {
                         </li>
                         <li>
                             <Link to='/landing' className="block p-2 rounded hover:bg-gray-700">
-                                Expenditure
+                                Commission
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to='/landing' className="block p-2 rounded hover:bg-gray-700">
+                                Payments
                             </Link>
                         </li>
                         <li>

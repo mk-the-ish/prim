@@ -12,6 +12,11 @@ import Tuition from './pages/tuition';
 
 
 
+
+
+
+
+
 function App() {
 
   const location = useLocation();
@@ -35,7 +40,7 @@ function App() {
 
         <Route path="/students/:studentId" element={<StudentView />} />
 
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
       </Routes>
     </div>
   );

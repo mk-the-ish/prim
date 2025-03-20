@@ -12,12 +12,14 @@ const Students = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
-        FirstNames: '',
-        Surname: '',
-        Gender: '',
+        FullName: '',
+        StudentID: '',
+        levy_owing: '',
+        tuition_owing: '',
+        Sex: '',
         Grade: '',
         Class: '',
-        ContactInfo: '',
+        contact_details: '',
         Address: '',
         DOB: new Date(),
         Sponsor: '',
@@ -32,7 +34,7 @@ const Students = () => {
     const fetchStudents = async () => {
         setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'students'));
+            const querySnapshot = await getDocs(collection(db, 'Students'));
             const studentList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
@@ -48,7 +50,7 @@ const Students = () => {
     const handleSearch = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'students'), where('FirstNames', '>=', searchTerm), where('FirstNames', '<=', searchTerm + '\uf8ff'));
+            const q = query(collection(db, 'Students'), where('FullName', '>=', searchTerm), where('FullName', '<=', searchTerm + '\uf8ff'));
             const querySnapshot = await getDocs(q);
             const searchResults = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -69,12 +71,14 @@ const Students = () => {
             setFormData(student);
         } else {
             setFormData({
-                FirstNames: '',
-                Surname: '',
-                Gender: '',
+                FullName: '',
+                StudentID: '',
+                levy_owing: '',
+                tuition_owing: '',
+                Sex: '',
                 Grade: '',
                 Class: '',
-                ContactInfo: '',
+                contact_details: '',
                 Address: '',
                 DOB: new Date(),
                 Sponsor: '',
@@ -95,10 +99,10 @@ const Students = () => {
         e.preventDefault();
         try {
             if (selectedStudent) {
-                await updateDoc(doc(db, 'students', selectedStudent.id), formData);
+                await updateDoc(doc(db, 'Students', selectedStudent.id), formData);
                 toast.success('Student updated successfully!');
             } else {
-                await addDoc(collection(db, 'students'), formData);
+                await addDoc(collection(db, 'Students'), formData);
                 toast.success('Student added successfully!');
             }
             fetchStudents();
@@ -111,7 +115,7 @@ const Students = () => {
 
     const handleDelete = async (id) => {
         try {
-            await deleteDoc(doc(db, 'students', id));
+            await deleteDoc(doc(db, 'Students', id));
             fetchStudents();
             toast.success('Student deleted successfully!');
         } catch (error) {
@@ -158,7 +162,7 @@ const Students = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                     {students.map((student) => (
                         <tr key={student.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">{student.FirstNames} {student.Surname}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{student.FullName}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{student.Gender}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{student.Grade}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{student.Class}</td>
@@ -183,16 +187,16 @@ const Students = () => {
                             <form className="p-4" onSubmit={handleSubmit}>
                                 {/* Form Inputs */}
                                 <div className="mb-4">
-                                    <label htmlFor="FirstNames" className="block text-gray-700 text-sm font-bold mb-2">First Names</label>
-                                    <input type="text" name="FirstNames" value={formData.FirstNames} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                    <label htmlFor="FullName" className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                                    <input type="text" name="FullName" value={formData.FullName} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="Surname" className="block text-gray-700 text-sm font-bold mb-2">Surname</label>
-                                    <input type="text" name="Surname" value={formData.Surname} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                    <label htmlFor="StudentID" className="block text-gray-700 text-sm font-bold mb-2">Student ID</label>
+                                    <input type="text" name="StudentID" value={formData.studentID} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="Gender" className="block text-gray-700 text-sm font-bold mb-2">Gender</label>
-                                    <input type="text" name="Gender" value={formData.Gender} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                    <label htmlFor="Sex" className="block text-gray-700 text-sm font-bold mb-2">Sex</label>
+                                    <input type="text" name="Sex" value={formData.Sex} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="Grade" className="block text-gray-700 text-sm font-bold mb-2">Grade</label>
@@ -203,8 +207,8 @@ const Students = () => {
                                     <input type="text" name="Class" value={formData.Class} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="ContactInfo" className="block text-gray-700 text-sm font-bold mb-2">Contact Info</label>
-                                    <input type="text" name="ContactInfo" value={formData.ContactInfo} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                    <label htmlFor="contact_details" className="block text-gray-700 text-sm font-bold mb-2">Contact Info</label>
+                                    <input type="text" name="contact_details" value={formData.contact_details} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="Address" className="block text-gray-700 text-sm font-bold mb-2">Address</label>
@@ -213,6 +217,14 @@ const Students = () => {
                                 <div className="mb-4">
                                     <label htmlFor="DOB" className="block text-gray-700 text-sm font-bold mb-2">Date of Birth</label>
                                     <input type="date" name="DOB" value={formData.DOB} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="levy_owing" className="block text-gray-700 text-sm font-bold mb-2">Levy Owing</label>
+                                    <input type="text" name="levy_owing" value={formData.levy_owing} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="tuition_owing" className="block text-gray-700 text-sm font-bold mb-2">Tuition Owing</label>
+                                    <input type="text" name="tuition_owing" value={formData.tuition_owing} onChange={handleChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="Sponsor" className="block text-gray-700 text-sm font-bold mb-2">Sponsor</label>
