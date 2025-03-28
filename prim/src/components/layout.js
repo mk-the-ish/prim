@@ -50,9 +50,9 @@ export default function Layout({ children }) {
                 to="/tuition"
               />
               <SidebarItem
-                icon={<span className="material-icons">add</span>}
-                text="Add Student"
-                to="/new-student"
+                icon={<span className="material-icons">Commissions</span>}
+                text="Commissions"
+                to="/commissions"
               />
               <SidebarItem
                 icon={<span className="material-icons">report</span>}
