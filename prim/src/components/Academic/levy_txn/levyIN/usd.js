@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import supabase from '../../../SupaBaseConfig';
+import supabase from '../../../../SupaBaseConfig';
 
 const LIusd = () => {
     const [formData, setFormData] = useState({

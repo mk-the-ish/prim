@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import LOusd from './USD.js';
-import LOzwg from './ZWG.js';
+import LOusd from './usd.js';
+import LOzwg from './zwg.js';
 
-function LO () {
+function LOpay () {
     const [activeRevenue, setActiveRevenue] = useState('USD'); // Initial state
 
     const handleRevenueChange = (RevenueType) => {
@@ -37,4 +37,4 @@ function LO () {
     );
 }
 
-export default LOrev;
+export default LOpay;

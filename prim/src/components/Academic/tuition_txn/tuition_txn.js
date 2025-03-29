@@ -10,7 +10,7 @@ const TuitionTxn = () => {
             <div className="grid grid-cols-2 gap-6">
                 {/* New Payments Card */}
                 <div
-                    onClick={() => navigate('/t-payment')}
+                    onClick={() => navigate('/tuitionOUT/payment')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">New Payments</h2>
@@ -19,7 +19,7 @@ const TuitionTxn = () => {
 
                 {/* New Revenues Card */}
                 <div
-                    onClick={() => navigate('/t-revenue')}
+                    onClick={() => navigate('/tuitionIN/revenue')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">New Revenues</h2>
@@ -28,7 +28,7 @@ const TuitionTxn = () => {
 
                 {/* View Payments Card */}
                 <div
-                    onClick={() => navigate('/ti-view')}
+                    onClick={() => navigate('/tuitionOUT')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">View Payments</h2>
@@ -37,7 +37,7 @@ const TuitionTxn = () => {
 
                 {/* View Revenues Card */}
                 <div
-                    onClick={() => navigate('/to-view')}
+                    onClick={() => navigate('/tuitionIN')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">View Revenues</h2>

@@ -10,7 +10,7 @@ const LevyTxn = () => {
             <div className="grid grid-cols-2 gap-6">
                 {/* New Payments Card */}
                 <div
-                    onClick={() => navigate('/l-payment')}
+                    onClick={() => navigate('/levyOUT/payment')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">New Payments</h2>
@@ -19,7 +19,7 @@ const LevyTxn = () => {
 
                 {/* New Revenues Card */}
                 <div
-                    onClick={() => navigate('/l-revenue')}
+                    onClick={() => navigate('/levyIN/revenue')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">New Revenues</h2>
@@ -28,7 +28,7 @@ const LevyTxn = () => {
 
                 {/* View Payments Card */}
                 <div
-                    onClick={() => navigate('/li-view')}
+                    onClick={() => navigate('/levyIN')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">View Payments</h2>
@@ -37,7 +37,7 @@ const LevyTxn = () => {
 
                 {/* View Revenues Card */}
                 <div
-                    onClick={() => navigate('/lo-view')}
+                    onClick={() => navigate('/levyOUT')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
                     <h2 className="text-xl font-semibold mb-2">View Revenues</h2>

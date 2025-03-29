@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../SupaBaseConfig';
+import supabase from '../../../../SupaBaseConfig';
 
 const TOVusd = () => {
     const [transactions, setTransactions] = useState([]);

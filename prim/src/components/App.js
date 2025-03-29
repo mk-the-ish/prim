@@ -34,7 +34,7 @@ import LIVzwg from './Academic/levy_txn/levyIN/viewZWG.js';
 import LOView from './Academic/levy_txn/levyOUT/view.js';
 import LOusd from './Academic/levy_txn/levyOUT/usd.js';
 import LOzwg from './Academic/levy_txn/levyOUT/zwg.js';
-import LOpay from './Academic/levy_txn/levyOUT/revenue.js';
+import LOpay from './Academic/levy_txn/levyOUT/payment.js';
 import LOVusd from './Academic/levy_txn/levyOUT/viewUSD.js';
 import LOVzwg from './Academic/levy_txn/levyOUT/viewZWG.js';
 import TIView from './Academic/tuition_txn/tuitionIN/view.js';
@@ -91,14 +91,14 @@ function App() {
           <Route path="/levyIN" element={<LIView />} />
           <Route path="/levyIN/usd" element={<LIusd />} />
           <Route path="/levyIN/zwg" element={<LIzwg />} />
-          <Route path="/levyIN/payment" element={<LIpay />} />
+          <Route path="/levyIN/revenue" element={<LIpay />} />
           <Route path="/levyIN/viewUSD" element={<LIVusd />} />
           <Route path="/levyIN/viewZWG" element={<LIVzwg />} />
 
           <Route path="/levyOUT" element={<LOView />} />
           <Route path="/levyOUT/usd" element={<LOusd />} />
           <Route path="/levyOUT/zwg" element={<LOzwg />} />
-          <Route path="/levyOUT/revenue" element={<LOpay />} />
+          <Route path="/levyOUT/payment" element={<LOpay />} />
           <Route path="/levyOUT/viewUSD" element={<LOVusd />} />
           <Route path="/levyOUT/viewZWG" element={<LOVzwg />} />
 
@@ -107,14 +107,14 @@ function App() {
           <Route path="/tuitionIN" element={<TIView />} />
           <Route path="/tuitionIN/usd" element={<TIusd />} />
           <Route path="/tuitionIN/zwg" element={<TIzwg />} />
-          <Route path="/tuitionIN/payment" element={<TIpay />} />
+          <Route path="/tuitionIN/revenue" element={<TIpay />} />
           <Route path="/tuitionIN/viewUSD" element={<TIVusd />} />
           <Route path="/tuitionIN/viewZWG" element={<TIVzwg />} />
 
           <Route path="/tuitionOUT" element={<TOView />} />
           <Route path="/tuitionOUT/usd" element={<TOusd />} />
           <Route path="/tuitionOUT/zwg" element={<TOzwg />} />
-          <Route path="/tuitionOUT/revenue" element={<TOpay />} />
+          <Route path="/tuitionOUT/payment" element={<TOpay />} />
           <Route path="/tuitionOUT/viewUSD" element={<TOVusd />} />
           <Route path="/tuitionOUT/viewZWG" element={<TOVzwg />} />
 
