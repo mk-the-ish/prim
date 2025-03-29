@@ -50,7 +50,7 @@ const StudentView = () => {
         try {
             // Fetch student details
             const { data: studentData, error: studentError } = await supabase
-                .from('students')
+                .from('Students')
                 .select('*')
                 .eq('id', studentId)
                 .single();
@@ -178,7 +178,7 @@ const StudentView = () => {
         // Implement delete functionality (confirm with user first)
         if (window.confirm('Are you sure you want to delete this student?')) {
             const { error } = await supabase
-                .from('students')
+                .from('Students')
                 .delete()
                 .eq('id', studentId);
             if (error) {

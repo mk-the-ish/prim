@@ -8,7 +8,11 @@ import NewStudent from './students/NewStudent';
 import Levy from './levy/levy';
 import StudentView from './students/StudentView';
 import Tuition from './tuition/tuition';
-import Commissions from './commission/commissions';
+import CommIN from './commission/commIN';
+import NewCommIn from './commission/newCommIN';
+import NewCommOut from './commission/newCommOut';
+import CommOUT from './commission/commOUT';
+import Commission from './commission/commission';
 
 function App() {
   return (
@@ -20,7 +24,11 @@ function App() {
           <Route path="/levy" element={<Levy />} />
           <Route path="/tuition" element={<Tuition />} />
           <Route path="/new-student" element={<NewStudent />} />
-          <Route path="/commissions" element={<Commissions />} />
+          <Route path="/commission" element={<Commission />} />
+          <Route path="/commIN" element={<CommIN />} />
+          <Route path="/newCommIn" element={<NewCommIn />} />
+          <Route path="/newCommOut" element={<NewCommOut />} />
+          <Route path="/commOUT" element={<CommOUT />} />
           <Route path="/student-view/:studentId" element={<StudentView />} />
           <Route path="/" element={<Students />} />
         </Routes>
