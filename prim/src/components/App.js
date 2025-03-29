@@ -20,8 +20,8 @@ import LevyZWG from './levy/levy_zwg';
 import StudentUpdate from './students/student_update';
 import NewLevyUSD from './levy/newLevyUSD';
 import NewLevyZWG from './levy/newLevyZWG';
-import NewTuitionUSD from './tuition/newTuitionUSD';
-import NewTuitionZWG from './tuition/newTuitionZWG';
+import NewTuitionUSD from './tuition/newTuitionUSD.js';
+import NewTuitionZWG from './tuition/newTuitionZWG.js';
 
 function App() {
   return (
