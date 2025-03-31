@@ -69,6 +69,7 @@ const StudentView = () => {
     const newTuitionZWG = () => navigate(`/newTuitionZWG/${studentId}`);
 
     const handleUpdate = () => navigate(`/student_update/${studentId}`);
+    const handleInvoice = () => navigate(`/invoice/${studentId}`);
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this student?')) {
             const { error } = await supabase.from('Students').delete().eq('id', studentId);
@@ -88,7 +89,7 @@ const StudentView = () => {
             {/* Left Panel: Student Details */}
             <div className="w-1/3 p-6 bg-gray-100 border rounded-lg shadow-md">
                 <h2 className="text-2xl font-semibold mb-4 text-center">Student Details</h2>
-                <div className="space-y-2">
+                <div className="space-y-2 text-justify">
                     <p><strong>Student ID:</strong> {student.id}</p>
                     <p><strong>Full Name:</strong> {student.FirstNames} {student.Surname}</p>
                     <p><strong>Gender:</strong> {student.Gender}</p>
@@ -98,6 +99,8 @@ const StudentView = () => {
                     <p><strong>Address:</strong> {student.Address}</p>
                     <p><strong>Date of Birth:</strong> {new Date(student.DOB).toLocaleDateString()}</p>
                     <p><strong>Sponsor:</strong> {student.Sponsor}</p>
+                    <p><strong>Levy Owed:</strong> ${student.Levy_Owing?.toFixed(2) || '0.00'}</p>
+                    <p><strong>Tuition Owed:</strong> ${student.Tuition_Owing?.toFixed(2) || '0.00'}</p>
                 </div>
                 <div className="mt-6 flex justify-center space-x-4">
                     <button onClick={handleUpdate} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -106,29 +109,36 @@ const StudentView = () => {
                     <button onClick={handleDelete} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                         Delete
                     </button>
+                    <button onClick={handleInvoice} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Invoice
+                    </button>
                 </div>
             </div>
 
             {/* Middle Panel: Levy */}
-            <div className="w-1/3 p-6 bg-gray-100 border rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Levy</h2>
+            <div className="w-2/3 p-6 bg-gray-100 border rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4">Levy Payments</h2>
                 {/* Levy USD */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">USD Payments</h3>
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {levyUsdPayments.map((payment) => (
                                 <tr key={payment.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{payment.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{payment.Amount}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.transaction_type}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -140,24 +150,24 @@ const StudentView = () => {
                     </div>
                 </div>
                 {/* Levy ZWG */}
-                <div>
+                <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">ZWG Payments</h3>
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD Equivalent</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {levyZwgPayments.map((payment) => (
                                 <tr key={payment.id}>
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap">{payment.Amount}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap">{payment.USD_equivalent}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -169,27 +179,30 @@ const StudentView = () => {
                     </div>
                 </div>
             </div>
-
             {/* Right Panel: Tuition */}
-            <div className="w-1/3 p-6 bg-gray-100 border rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Tuition</h2>
+            <div className="w-3/3 p-6 bg-gray-100 border rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4">Tuition Payments</h2>
                 {/* Tuition USD */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">USD Payments</h3>
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {tuitionUsdPayments.map((payment) => (
                                 <tr key={payment.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{payment.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{payment.Amount}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.transaction_type}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -200,25 +213,25 @@ const StudentView = () => {
                         </button>
                     </div>
                 </div>
-                {/* Tuition ZWG */}
-                <div>
+                {/* Levy ZWG */}
+                <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">ZWG Payments</h3>
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD Equivalent</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {tuitionZwgPayments.map((payment) => (
+                            {tuitionUsdPayments.map((payment) => (
                                 <tr key={payment.id}>
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap">{payment.Amount}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap">{payment.USD_equivalent}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}
                         </tbody>

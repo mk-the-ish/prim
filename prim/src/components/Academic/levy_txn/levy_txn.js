@@ -13,8 +13,8 @@ const LevyTxn = () => {
                     onClick={() => navigate('/levyOUT/payment')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
-                    <h2 className="text-xl font-semibold mb-2">New Payments</h2>
-                    <p className="text-gray-500 text-sm text-center">Add new payment transactions.</p>
+                    <h2 className="text-xl font-semibold mb-2">New Revenues</h2>
+                    <p className="text-gray-500 text-sm text-center">Add new revenue transactions.</p>
                 </div>
 
                 {/* New Revenues Card */}
@@ -22,8 +22,8 @@ const LevyTxn = () => {
                     onClick={() => navigate('/levyIN/revenue')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
-                    <h2 className="text-xl font-semibold mb-2">New Revenues</h2>
-                    <p className="text-gray-500 text-sm text-center">Add new revenue transactions.</p>
+                    <h2 className="text-xl font-semibold mb-2">New Payments</h2>
+                    <p className="text-gray-500 text-sm text-center">Add new payment transactions.</p>
                 </div>
 
                 {/* View Payments Card */}
@@ -31,8 +31,8 @@ const LevyTxn = () => {
                     onClick={() => navigate('/levyIN')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
-                    <h2 className="text-xl font-semibold mb-2">View Payments</h2>
-                    <p className="text-gray-500 text-sm text-center">View all payment transactions.</p>
+                    <h2 className="text-xl font-semibold mb-2">View Revenues</h2>
+                    <p className="text-gray-500 text-sm text-center">View all revenue transactions.</p>
                 </div>
 
                 {/* View Revenues Card */}
@@ -40,8 +40,8 @@ const LevyTxn = () => {
                     onClick={() => navigate('/levyOUT')}
                     className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
                 >
-                    <h2 className="text-xl font-semibold mb-2">View Revenues</h2>
-                    <p className="text-gray-500 text-sm text-center">View all revenue transactions.</p>
+                    <h2 className="text-xl font-semibold mb-2">View Payments</h2>
+                    <p className="text-gray-500 text-sm text-center">View all payment transactions.</p>
                 </div>
             </div>
         </div>

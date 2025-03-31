@@ -10,6 +10,7 @@ const NewLevyZWG = () => {
         Date: '',
         Amount: '',
         USD_equivalent: '',
+        reference: '',
     });
     const [loading, setLoading] = useState(false);
 
@@ -22,14 +23,33 @@ const NewLevyZWG = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { error } = await supabase.from('levy_zwg').insert([formData]);
-            if (error) throw error;
+            // Insert the payment into the levy_zwg table
+            const { error: insertError } = await supabase.from('levy_zwg').insert([formData]);
+            if (insertError) throw insertError;
 
-            alert('Payment added successfully!');
+            // Fetch the current Levy_Owing value for the student
+            const { data: studentData, error: fetchError } = await supabase
+                .from('Students')
+                .select('Levy_Owing')
+                .eq('id', studentId)
+                .single();
+            if (fetchError) throw fetchError;
+
+            // Calculate the new Levy_Owing value using USD_equivalent
+            const newLevyOwing = (studentData.Levy_Owing || 0) - parseFloat(formData.USD_equivalent);
+
+            // Update the Levy_Owing column in the Students table
+            const { error: updateError } = await supabase
+                .from('Students')
+                .update({ Levy_Owing: newLevyOwing })
+                .eq('id', studentId);
+            if (updateError) throw updateError;
+
+            alert('Payment added successfully, and Levy Owing updated!');
             navigate(`/student-view/${studentId}`); // Redirect back to the student view page
         } catch (error) {
-            console.error('Error adding payment:', error);
-            alert('Failed to add payment. Please try again.');
+            console.error('Error processing payment:', error);
+            alert('Failed to process payment. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -72,11 +92,21 @@ const NewLevyZWG = () => {
                         required
                     />
                 </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-left">Reference</label>
+                    <input
+                        type="text"
+                        name="reference"
+                        value={formData.reference}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    />
+                </div>
                 <button
                     type="submit"
-                    className={`w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ${
-                        loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                     disabled={loading}
                 >
                     {loading ? 'Adding...' : 'Add Payment'}

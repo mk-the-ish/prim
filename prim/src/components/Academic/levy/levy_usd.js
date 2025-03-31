@@ -29,7 +29,7 @@ const LevyUSD = () => {
     if (loading) return <p>Loading...</p>;
 
     return (
-        <div>
+        <div className='container mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md'>
             <h3 className="text-lg font-semibold mb-2">USD Payments</h3>
             <table className="min-w-full divide-y divide-gray-200 mb-4">
                 <thead>

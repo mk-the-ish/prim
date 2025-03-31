@@ -35,7 +35,7 @@ const CommOUT = () => {
 
     return (
         <div className="container mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-center mb-6">Commissions Out</h2>
+            <h2 className="text-2xl font-semibold text-center mb-6">Commissions Out</h2>
 
             {/* Search Bar and Add New Button */}
             <div className="flex justify-between items-center mb-6">

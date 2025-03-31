@@ -49,6 +49,9 @@ import TOzwg from './Academic/tuition_txn/tuitionOUT/zwg.js';
 import TOpay from './Academic/tuition_txn/tuitionOUT/payment.js';
 import TOVusd from './Academic/tuition_txn/tuitionOUT/viewUSD.js';
 import TOVzwg from './Academic/tuition_txn/tuitionOUT/viewZWG.js';
+import DailyReport from './Academic/reports/daily.js';
+import Report from './Academic/reports/report.js';
+import Invoice from './Academic/reports/invoice.js';
 
 
 function App() {
@@ -117,6 +120,11 @@ function App() {
           <Route path="/tuitionOUT/payment" element={<TOpay />} />
           <Route path="/tuitionOUT/viewUSD" element={<TOVusd />} />
           <Route path="/tuitionOUT/viewZWG" element={<TOVzwg />} />
+
+          {/*Reports*/}
+          <Route path="/reports/daily" element={<DailyReport />} />
+          <Route path="/reports" element={<Report />} />
+          <Route path="/invoice/:studentId" element={<Invoice />} />
 
           {/* Financials */}
           <Route path="/financials" element={<Financials />} />
