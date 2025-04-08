@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../../../SupaBaseConfig';
+import { form } from 'framer-motion/client';
 
 const NewLevyUSD = () => {
     const { studentId } = useParams();
@@ -11,6 +12,7 @@ const NewLevyUSD = () => {
         Amount: '',
         transaction_type: '',
         reference: '',
+        form: '',
     });
     const [loading, setLoading] = useState(false);
     const [receiptData, setReceiptData] = useState(null); // State to store receipt data
@@ -133,6 +135,21 @@ const NewLevyUSD = () => {
                         <option value="cash">cash</option>
                         <option value="transfer">transfer</option>
                         <option value="misplaced transfer">misplaced transfer</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-left">Payment Timeline</label>
+                    <select
+                        name="form"
+                        value={formData.form}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    >
+                        <option value="">Select Payment Timeline</option>
+                        <option value="normal">normal</option>
+                        <option value="prepayment">prepayment</option>
+                        <option value="recovery">recovery</option>
                     </select>
                 </div>
                 <div>

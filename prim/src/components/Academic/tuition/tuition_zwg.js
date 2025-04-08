@@ -41,6 +41,7 @@ const TuitionZWG = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD Equivalent</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Type</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -55,6 +56,7 @@ const TuitionZWG = () => {
                             <td className="px-6 py-4 whitespace-nowrap">{new Date(tuition.Date).toLocaleDateString()}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{tuition.Amount}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{tuition.USD_equivalent}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{tuition.form}</td>
                         </tr>
                     ))}
                 </tbody>

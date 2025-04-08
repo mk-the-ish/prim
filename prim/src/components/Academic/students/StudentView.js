@@ -158,6 +158,7 @@ const StudentView = () => {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD Equivalent</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
@@ -167,6 +168,7 @@ const StudentView = () => {
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.USD_equivalent?.toFixed(2) || '0.00'}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}
@@ -222,15 +224,17 @@ const StudentView = () => {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD Equivalent</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {tuitionUsdPayments.map((payment) => (
+                            {tuitionZwgPayments.map((payment) => (
                                 <tr key={payment.id}>
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.id}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">{new Date(payment.Date).toLocaleDateString()}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">${payment.Amount.toFixed(2)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap">${payment.USD_equivalent?.toFixed(2) || '0.00'}</td>
                                     <td className="px-4 py-4 whitespace-nowrap">{payment.reference}</td>
                                 </tr>
                             ))}

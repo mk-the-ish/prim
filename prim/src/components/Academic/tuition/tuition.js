@@ -13,7 +13,7 @@ function Tuition() {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-                <h2 className="text-2xl font-semibold mb-4" style={{ flex: 1, textAlign: 'center' }}>Tuition Payments</h2>
+                <h2 className="text-2xl font-bold mb-4" style={{ flex: 1, textAlign: 'center' }}>Tuition Payments</h2>
                 <button
                     style={{
                         padding: '10px 20px',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUserGraduate, FaMoneyBill, FaBook, FaChartBar, FaUniversity, FaFileInvoiceDollar, FaWallet, FaCommentDollar, FaCreditCard, FaCcMastercard, FaCcAmazonPay } from 'react-icons/fa'; // Example icons
+import { FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar, FaWallet, FaCreditCard, FaCcAmazonPay, FaPager } from 'react-icons/fa'; // Example icons
 
 const Layout = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -27,6 +27,12 @@ const Layout = ({ children }) => {
           <nav className="mt-4">
             <ul>
               <li className="flex items-center p-4 hover:bg-gray-700">
+                <Link to="/dashboard" className="flex items-center">
+                  <FaPager className="text-xl" />
+                  {isSidebarExpanded && <span className="ml-4">Dashboard</span>}
+                </Link>
+              </li>
+              <li className="flex items-center p-4 hover:bg-gray-700">
                 <Link to="/students" className="flex items-center">
                   <FaUserGraduate className="text-xl" />
                   {isSidebarExpanded && <span className="ml-4">Students</span>}
@@ -46,7 +52,7 @@ const Layout = ({ children }) => {
               </li>
               <li className="flex items-center p-4 hover:bg-gray-700">
                 <Link to="/commission" className="flex items-center">
-                  <FaCommentDollar className="text-xl" />
+                  <FaDonate className="text-xl" />
                   {isSidebarExpanded && <span className="ml-4">Commission</span>}
                 </Link>
               </li>
@@ -65,15 +71,9 @@ const Layout = ({ children }) => {
           <nav>
             <ul>
               <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/levy_txn" className="flex items-center">
+                <Link to="/txn" className="flex items-center">
                   <FaCreditCard className="text-lg" />
-                  {isSidebarExpanded && <span className="ml-4">CBZ</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/tuition_txn" className="flex items-center">
-                  <FaCcAmazonPay className="text-lg" />
-                  {isSidebarExpanded && <span className="ml-4">ZB</span>}
+                  {isSidebarExpanded && <span className="ml-4">Transactions</span>}
                 </Link>
               </li>
               <li className="flex items-center p-4 hover:bg-gray-700 text-sm">

@@ -98,13 +98,15 @@ const NewStudent = () => {
                         required
                     >
                         <option value="">Select Grade</option>
-                        <option value="Grade 1">Grade 1</option>
-                        <option value="Grade 2">Grade 2</option>
-                        <option value="Grade 3">Grade 3</option>
-                        <option value="Grade 4">Grade 4</option>
-                        <option value="Grade 5">Grade 5</option>
-                        <option value="Grade 6">Grade 6</option>
-                        <option value="Grade 7">Grade 7</option>
+                        <option value="ECD A">ECD A</option>
+                        <option value="ECD B">ECD B</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
                     </select>
                 </div>
                 <div>
@@ -117,12 +119,16 @@ const NewStudent = () => {
                         required
                     >
                         <option value="">Select Class</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                        <option value="E">E</option>
-                        <option value="F">F</option>
+                        <option value="blue">A</option>
+                        <option value="orange">B</option>
+                        <option value="yellow">C</option>
+                        <option value="pink">D</option>
+                        <option value="white">E</option>
+                        <option value="maroon">F</option>
+                        <option value="red">F</option>
+                        <option value="green">F</option>
+                        <option value="brown">F</option>
+                        <option value="purple">F</option>
                     </select>
                 </div>
                 <div>

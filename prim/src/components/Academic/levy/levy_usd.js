@@ -40,6 +40,8 @@ const LevyUSD = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Method</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Type</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -53,6 +55,8 @@ const LevyUSD = () => {
                             <td className="px-6 py-4 whitespace-nowrap">{levy.Students?.Gender || 'N/A'}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{new Date(levy.Date).toLocaleDateString()}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{levy.Amount}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{levy.transaction_type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{levy.form}</td>
                         </tr>
                     ))}
                 </tbody>

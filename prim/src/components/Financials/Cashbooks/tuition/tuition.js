@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import LevyUSD from './levy_usd';
-import LevyZWG from './levy_zwg';
+import CSTusd from './usd';
+import CSTzwg from './zwg';
 
-function Levy() {
+function CSTuition() {
     const [activeTab, setActiveTab] = useState('USD');
 
     const handleTabChange = (tab) => {
@@ -11,31 +11,31 @@ function Levy() {
 
     return (
         <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 className="text-2xl font-bold mb-4" style={{ flex: 1, textAlign: 'center' }}>Levy Payments</h2>
                 <button
                     style={{
                         padding: '10px 20px',
                         backgroundColor: activeTab === 'USD' ? 'lightblue' : 'lightgray',
-                }}
+                    }}
                     onClick={() => handleTabChange('USD')}
                 >
-                USD
+                    USD
                 </button>
                 <button
-                style={{
-                    padding: '10px 20px',
-                    backgroundColor: activeTab === 'ZWG' ? 'lightblue' : 'lightgray',
-                }}
-                onClick={() => handleTabChange('ZWG')}
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: activeTab === 'ZWG' ? 'lightblue' : 'lightgray',
+                    }}
+                    onClick={() => handleTabChange('ZWG')}
                 >
-                ZWG
+                    ZWG
                 </button>
             </div>
-            { activeTab === 'USD' && <LevyUSD /> }
-            {activeTab === 'ZWG' && <LevyZWG />}
+            {activeTab === 'USD' && <CSTusd />}
+            {activeTab === 'ZWG' && <CSTzwg />}
         </>
     );
 };
 
-export default Levy;
+export default CSTuition;
