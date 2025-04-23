@@ -48,6 +48,7 @@ import TOpay from './Academic/txn/tuition_txn/tuitionOUT/payment.js';
 import TOVusd from './Academic/txn/tuition_txn/tuitionOUT/viewUSD.js';
 import TOVzwg from './Academic/txn/tuition_txn/tuitionOUT/viewZWG.js';
 import DailyReport from './Academic/reports/daily.js';
+import MonthlyReport from './Academic/reports/monthly.js';
 import Report from './Academic/reports/report.js';
 import Invoice from './Academic/reports/invoice.js';
 import AdminDashboard from './Academic/Dashboard/dashboard.js';
@@ -62,7 +63,9 @@ import CSLzwg from './Financials/Cashbooks/levy/levyZWG.js';
 import CSTusd from './Financials/Cashbooks/tuition/usd.js';
 import CSTzwg from './Financials/Cashbooks/tuition/zwg.js';
 import PreviousCS from './Financials/Cashbooks/previousCS.js';
-import TxnLayout from './Academic/txn/TxnLayout.js';
+import FinancialLayout from './Financials/FinancialLayout.js';
+import ViewInvoices from './Academic/txn/levy_txn/levyOUT/viewInvoices.js';
+import TopBar from './Academic/txn/topbar.js';
 
 function App() {
   return (
@@ -70,7 +73,7 @@ function App() {
     <div className="App">
       <Layout>
         <Routes>
-          {/* Landing Page */}
+          {/* Landing Page */}32;
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/" element={<Students />} />
 
@@ -105,61 +108,67 @@ function App() {
           <Route path="/newCommOut" element={<NewCommOut />} />
           <Route path="/commOUT" element={<CommOUT />} />
 
-          {/* Transactions*/}
-          <Route path='/txn' element={<TxnLayout/>}>
-            {/* Levy Transactions */}
-            <Route path="levyIN" element={<LIView />} />
-            <Route path="levyIN/usd" element={<LIusd />} />
-            <Route path="levyIN/zwg" element={<LIzwg />} />
-            <Route path="levyIN/revenue" element={<LIpay />} />
-            <Route path="levyIN/viewUSD" element={<LIVusd />} />
-            <Route path="levyIN/viewZWG" element={<LIVzwg />} />
+          {/* Levy Transactions */}
+          <Route path='/viewInvoices' element={<ViewInvoices />} />
+          <Route path='/txnTopBar' element={<TopBar/>} />
+          <Route path="/levyIN" element={<LIView />} />
+          <Route path="/levyIN/usd" element={<LIusd />} />
+          <Route path="/levyIN/zwg" element={<LIzwg />} />
+          <Route path="/levyIN/revenue" element={<LIpay />} />
+          <Route path="/levyIN/viewUSD" element={<LIVusd />} />
+          <Route path="/levyIN/viewZWG" element={<LIVzwg />} />
 
-            <Route path="levyOUT" element={<LOView />} />
-            <Route path="levyOUT/usd" element={<LOusd />} />
-            <Route path="levyOUT/zwg" element={<LOzwg />} />
-            <Route path="levyOUT/payment" element={<LOpay />} />
-            <Route path="levyOUT/viewUSD" element={<LOVusd />} />
-            <Route path="levyOUT/viewZWG" element={<LOVzwg />} />
+          <Route path="/levyOUT" element={<LOView />} />
+          <Route path="/levyOUT/usd" element={<LOusd />} />
+          <Route path="/levyOUT/zwg" element={<LOzwg />} />
+          <Route path="/levyOUT/payment" element={<LOpay />} />
+          <Route path="/levyOUT/viewUSD" element={<LOVusd />} />
+          <Route path="/levyOUT/viewZWG" element={<LOVzwg />} />
 
-            {/* Tuition Transactions */}
-            <Route path="tuitionIN" element={<TIView />} />
-            <Route path="tuitionIN/usd" element={<TIusd />} />
-            <Route path="tuitionIN/zwg" element={<TIzwg />} />
-            <Route path="tuitionIN/revenue" element={<TIpay />} />
-            <Route path="tuitionIN/viewUSD" element={<TIVusd />} />
-            <Route path="tuitionIN/viewZWG" element={<TIVzwg />} />
+          {/* Tuition Transactions */}
+          <Route path="/tuitionIN" element={<TIView />} />
+          <Route path="/tuitionIN/usd" element={<TIusd />} />
+          <Route path="/tuitionIN/zwg" element={<TIzwg />} />
+          <Route path="/tuitionIN/revenue" element={<TIpay />} />
+          <Route path="/tuitionIN/viewUSD" element={<TIVusd />} />
+          <Route path="/tuitionIN/viewZWG" element={<TIVzwg />} />
 
-            <Route path="tuitionOUT" element={<TOView />} />
-            <Route path="tuitionOUT/usd" element={<TOusd />} />
-            <Route path="tuitionOUT/zwg" element={<TOzwg />} />
-            <Route path="tuitionOUT/payment" element={<TOpay />} />
-            <Route path="tuitionOUT/viewUSD" element={<TOVusd />} />
-            <Route path="tuitionOUT/viewZWG" element={<TOVzwg />} />
-          </Route>
+          <Route path="/tuitionOUT" element={<TOView />} />
+          <Route path="/tuitionOUT/usd" element={<TOusd />} />
+          <Route path="/tuitionOUT/zwg" element={<TOzwg />} />
+          <Route path="/tuitionOUT/payment" element={<TOpay />} />
+          <Route path="/tuitionOUT/viewUSD" element={<TOVusd />} />
+          <Route path="/tuitionOUT/viewZWG" element={<TOVzwg />} />
+
+          {/*Invoices*/}
+          <Route path='/levyOUT/viewInvoices' element={<ViewInvoices/>}/> 
+
 
           {/*Reports*/}
           <Route path="/reports/daily" element={<DailyReport />} />
+          <Route path="/reports/monthly" element={<MonthlyReport />} />
           <Route path="/reports" element={<Report />} />
           <Route path="/invoice/:studentId" element={<Invoice />} />
 
           {/* Financials */}
-          <Route path="/financials" element={<Financials />} />
-          <Route path="/financials/Statements" element={<Statements />} />
-          <Route path="/financials/Budget" element={<Budget />} />
-          <Route path="/financials/HR" element={<HR />} />
+          <Route path="/financials" element={<FinancialLayout />}>
+            <Route index element={<Financials/>}/>
+            <Route path="/financials/Statements" element={<Statements />} />
+            <Route path="/financials/Budget" element={<Budget />} />
+            <Route path="/financials/HR" element={<HR />} />
 
-          {/* Cashbooks */}
-          <Route path="/financials/Cashbooks" element={<CSLevy />} />
+            {/* Cashbooks */}
+            <Route path="/financials/Cashbooks" element={<CSLevy />} />
 
-          <Route path="/financials/Cashbooks/levy" element={<CSLevy />} />
-          <Route path="/financials/Cashbooks/levyUSD" element={<CSLusd />} />
-          <Route path="/financials/Cashbooks/levyZWG" element={<CSLzwg />} />
-          <Route path="/financials/Cashbooks/previousCS" element={<PreviousCS />} />
-          
-          <Route path="/financials/Cashbooks/tuition" element={<CSTuition />} />
-          <Route path="/financials/Cashbooks/tuitionUSD" element={<CSTusd />} />
-          <Route path="/financials/Cashbooks/tuitionZWG" element={<CSTzwg />} />
+            <Route path="/financials/Cashbooks/levy" element={<CSLevy />} />
+            <Route path="/financials/Cashbooks/levyUSD" element={<CSLusd />} />
+            <Route path="/financials/Cashbooks/levyZWG" element={<CSLzwg />} />
+            <Route path="/financials/Cashbooks/previousCS" element={<PreviousCS />} />
+            
+            <Route path="/financials/Cashbooks/tuition" element={<CSTuition />} />
+            <Route path="/financials/Cashbooks/tuitionUSD" element={<CSTusd />} />
+            <Route path="/financials/Cashbooks/tuitionZWG" element={<CSTzwg />} />
+          </Route>
 
           {/* 404 Page */}
           <Route path="*" element={<h1>404 - Not Found</h1>} />

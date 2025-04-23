@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar, FaWallet, FaCreditCard, FaCcAmazonPay, FaPager } from 'react-icons/fa'; // Example icons
+import { FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar, FaWallet, FaCreditCard, FaPager } from 'react-icons/fa'; // Example icons
 
 const Layout = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -71,7 +71,7 @@ const Layout = ({ children }) => {
           <nav>
             <ul>
               <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/txn" className="flex items-center">
+                <Link to="/viewInvoices" className="flex items-center">
                   <FaCreditCard className="text-lg" />
                   {isSidebarExpanded && <span className="ml-4">Transactions</span>}
                 </Link>

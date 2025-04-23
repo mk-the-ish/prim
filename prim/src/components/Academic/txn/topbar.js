@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+
 const TopBar = () => {
     const navigate = useNavigate();
     const [activeDropdown, setActiveDropdown] = useState(null); // State to track active dropdown
@@ -19,6 +20,7 @@ const TopBar = () => {
         <div className="p-6 bg-gray-100 min-h-screen">
             {/* Top Navigation Bar */}
             <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+                
                 <h1 className="text-2xl font-bold text-center flex-1">Account Transactions</h1>
                 {/* CBZ Dropdown */}
                 <div className="relative">
@@ -39,7 +41,7 @@ const TopBar = () => {
                             {activeSubDropdown === 'cbzPayment' && (
                                 <div className="absolute top-0 left-full ml-2 bg-white text-gray-800 shadow-lg rounded-lg w-40">
                                     <button
-                                        onClick={() => navigate('/viewinvoices')}
+                                        onClick={() => navigate('/viewInvoices')}
                                         className="block w-full text-left px-4 py-2 hover:bg-gray-200"
                                     >
                                         Purchases Invoice
@@ -173,6 +175,7 @@ const TopBar = () => {
                         </div>
                     )}
                 </div>
+                
             </div>
         </div>
     );
