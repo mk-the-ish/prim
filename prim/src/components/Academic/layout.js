@@ -71,7 +71,7 @@ const Layout = ({ children }) => {
           <nav>
             <ul>
               <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/viewInvoices" className="flex items-center">
+                <Link to="/txn" className="flex items-center">
                   <FaCreditCard className="text-lg" />
                   {isSidebarExpanded && <span className="ml-4">Transactions</span>}
                 </Link>

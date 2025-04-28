@@ -212,31 +212,31 @@ const DailyReport = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                <div className="bg-blue-100 p-4 rounded-lg shadow-md border border-blue-300">
+                <div className="bg-blue-100 p-4 rounded-lg shadow-md border ">
                     <h3 className="text-lg font-bold text-blue-700">Commission In</h3>
                     <p className="text-xl font-semibold">${commissionIn.toFixed(2)}</p>
                 </div>
-                <div className="bg-blue-150 p-4 rounded-lg shadow-md border border-blue-400">
-                    <h3 className="text-lg font-bold text-blue-700">Commission Out</h3>
+                <div className="bg-red-100 p-4 rounded-lg shadow-md border ">
+                    <h3 className="text-lg font-bold text-red-700">Commission Out</h3>
                     <p className="text-xl font-semibold">${commissionOut.toFixed(2)}</p>
                 </div>
-                <div className="bg-blue-100 p-4 rounded-lg shadow-md border border-blue-500">
-                    <h3 className="text-lg font-bold text-blue-700">Levy Txn In</h3>
+                <div className="bg-green-100 p-4 rounded-lg shadow-md border ">
+                    <h3 className="text-lg font-bold text-green-700">Levy Txn In</h3>
                     <p className="text-sm">USD: ${levyTxnInUsd.toFixed(2)}</p>
                     <p className="text-sm">ZWG: ${levyTxnInZwg.toFixed(2)}</p>
                 </div>
-                <div className="bg-blue-250 p-4 rounded-lg shadow-md border border-blue-600">
+                <div className="bg-yellow-100 p-4 rounded-lg shadow-md border">
                     <h3 className="text-lg font-bold text-blue-700">Levy Txn Out</h3>
                     <p className="text-sm">USD: ${levyTxnOutUsd.toFixed(2)}</p>
                     <p className="text-sm">ZWG: ${levyTxnOutZwg.toFixed(2)}</p>
                 </div>
-                <div className="bg-blue-100 p-4 rounded-lg shadow-md border border-blue-700">
-                    <h3 className="text-lg font-bold text-blue-700">Tuition Txn In</h3>
+                <div className="bg-purple-100 p-4 rounded-lg shadow-md border ">
+                    <h3 className="text-lg font-bold text-purple-700">Tuition Txn In</h3>
                     <p className="text-sm">USD: ${tuitionTxnInUsd.toFixed(2)}</p>
                     <p className="text-sm">ZWG: ${tuitionTxnInZwg.toFixed(2)}</p>
                 </div>
-                <div className="bg-blue-350 p-4 rounded-lg shadow-md border border-blue-800">
-                    <h3 className="text-lg font-bold text-blue-700">Tuition Txn Out</h3>
+                <div className="bg-indigo-100 p-4 rounded-lg shadow-md border ">
+                    <h3 className="text-lg font-bold text-indigo-700">Tuition Txn Out</h3>
                     <p className="text-sm">USD: ${tuitionTxnOutUsd.toFixed(2)}</p>
                     <p className="text-sm">ZWG: ${tuitionTxnOutZwg.toFixed(2)}</p>
                 </div>
@@ -246,7 +246,7 @@ const DailyReport = () => {
                 {/* Left Panel (USD Transactions) */}
                 <div className="w-full lg:w-1/2 flex flex-col gap-6">
                     {/* Levy USD */}
-                    <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <div className="bg-blue-100 shadow-lg rounded-lg p-6 border border-blue-300">
                         <h3 className="text-xl font-bold mb-4">Levy USD Transactions</h3>
                         {levyUsdTransactions.length > 0 ? (
                             <table className="min-w-full divide-y divide-gray-200">
@@ -275,7 +275,7 @@ const DailyReport = () => {
                     </div>
 
                     {/* Tuition USD */}
-                    <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <div className="bg-blue-150 shadow-lg rounded-lg p-6 border border-blue-400">
                         <h3 className="text-xl font-bold mb-4">Tuition USD Transactions</h3>
                         {tuitionUsdTransactions.length > 0 ? (
                             <table className="min-w-full divide-y divide-gray-200">
@@ -307,7 +307,7 @@ const DailyReport = () => {
                 {/* Right Panel (ZWG Transactions) */}
                 <div className="w-full lg:w-1/2 flex flex-col gap-6">
                     {/* Levy ZWG */}
-                    <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <div className="bg-blue-150 shadow-lg rounded-lg p-6 border border-blue-500">
                         <h3 className="text-xl font-bold mb-4">Levy ZWG Transactions</h3>
                         {levyZwgTransactions.length > 0 ? (
                             <table className="min-w-full divide-y divide-gray-200">
@@ -338,7 +338,7 @@ const DailyReport = () => {
                     </div>
 
                     {/* Tuition ZWG */}
-                    <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <div className="bg-blue-100 shadow-lg rounded-lg p-6 border border-blue-600">
                         <h3 className="text-xl font-bold mb-4">Tuition ZWG Transactions</h3>
                         {tuitionZwgTransactions.length > 0 ? (
                             <table className="min-w-full divide-y divide-gray-200">

@@ -5,8 +5,6 @@ import Statements from './Statements/statements.js';
 import Budget from './Budget/budget.js';
 import HR from './HR/HR.js';
 import PreviousCS from './Cashbooks/previousCS.js';
-import { Link } from 'react-router-dom';
-import { FaHome } from 'react-icons/fa';
 
 const Financials = () => {
     const [activeFinancial, setActiveFinancial] = useState('CSLevy'); // Default to 'Cashbooks'
@@ -35,13 +33,6 @@ const Financials = () => {
         <div className="flex flex-col h-screen">
             {/* Top Bar */}
             <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-                <div>
-                    <Link to="/students
-                    
-                    " className="flex items-center">
-                        <FaHome className="text-xl" />
-                    </Link>
-                </div>
                 {/* Centered Heading */}
                 <h1 className="text-2xl font-bold text-center flex-1">Financial Statements</h1>
 

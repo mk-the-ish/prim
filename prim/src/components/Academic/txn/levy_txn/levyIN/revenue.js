@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import LIusd from './usd.js';
 import LIzwg from './zwg.js';
-import TopBar from '../../topbar.js';
 
 function LIpay() {
     const [activePayment, setActivePayment] = useState('USD'); // Initial state
@@ -11,14 +10,9 @@ function LIpay() {
     };
 
     return (
-        <div className="flex flex-col h-screen">
-                {/* Fixed Top Bar */}
-                <div className="fixed top-0 left-0 right-0 z-50">
-                    <TopBar />
-                </div>
-
+        <div className="p-6 bg-gray-100 min-h-screen">
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto mt-[80px] p-6 bg-gray-100">
+                <div className="overflow-y-auto">
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                         <button
                             style={{

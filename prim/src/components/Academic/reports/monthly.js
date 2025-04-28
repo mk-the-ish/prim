@@ -8,8 +8,6 @@ const MonthlyReport = () => {
     const [tuitionTxnOut, setTuitionTxnOut] = useState({ usd: 0, zwg: 0 });
     const [Levy, setLevy] = useState({ usd: 0, zwg: 0 });
     const [Tuition, setTuition] = useState({ usd: 0, zwg: 0 });
-    const [levyTotal, setLevyTotal] = useState(0);
-    const [tuitionTotal, setTuitionTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import TOVusd from './viewUSD.js';
 import TOVzwg from './viewZWG.js';
-import TopBar from '../../topbar.js';
 
 function TOView() {
     const [activeView, setActiveView] = useState('USD'); // Initial state
@@ -11,14 +10,10 @@ function TOView() {
     };
 
     return (
-                <div className="flex flex-col h-screen">
-                {/* Fixed Top Bar */}
-                <div className="fixed top-0 left-0 right-0 z-50">
-                    <TopBar />
-                </div>
+                <div className="min-h-screen">
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto mt-[80px] p-6 bg-gray-100">
+                <div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                         <button
                             style={{
