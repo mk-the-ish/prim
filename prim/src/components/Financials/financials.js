@@ -4,7 +4,6 @@ import CSTuition from './Cashbooks/tuition/tuition.js';
 import Statements from './Statements/statements.js';
 import Budget from './Budget/budget.js';
 import HR from './HR/HR.js';
-import PreviousCS from './Cashbooks/previousCS.js';
 
 const Financials = () => {
     const [activeFinancial, setActiveFinancial] = useState('CSLevy'); // Default to 'Cashbooks'
@@ -16,8 +15,6 @@ const Financials = () => {
                 return <CSLevy />;
             case 'Tuition':
                 return <CSTuition />;
-            case 'Previous':
-                return <PreviousCS />;
             case 'Statements':
                 return <Statements />;
             case 'Budget':
@@ -65,15 +62,6 @@ const Financials = () => {
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-200"
                                 >
                                     Levy
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setActiveFinancial('Previous');
-                                        setShowDropdown(false); // Close dropdown after selection
-                                    }}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                                >
-                                    Previous Cashbooks
                                 </button>
                             </div>
                         )}

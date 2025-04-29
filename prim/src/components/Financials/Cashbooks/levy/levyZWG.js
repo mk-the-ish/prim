@@ -7,24 +7,25 @@ const CSLzwg = () => {
     const [debitCategories, setDebitCategories] = useState([]);
     const [creditCategories, setCreditCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+    
 
     useEffect(() => {
         fetchCashbookData();
-    }, []);
+    }, [selectedMonth]);
 
     const fetchCashbookData = async () => {
         setLoading(true);
         try {
-            const today = new Date();
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
-            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString();
+            const startDate = `${selectedMonth}-01`;
+            const endDate = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).toISOString().split('T')[0];
 
             // Fetch debit data (levy_in_txn_usd)
             const { data: debitData, error: debitError } = await supabase
                 .from('levy_in_txn_zwg')
                 .select('Date, id, Amount, Category')
-                .gte('Date', firstDayOfMonth)
-                .lte('Date', lastDayOfMonth);
+                .gte('Date', startDate)
+                .lte('Date', endDate);
 
             if (debitError) throw debitError;
 
@@ -32,8 +33,8 @@ const CSLzwg = () => {
             const { data: creditData, error: creditError } = await supabase
                 .from('levy_out_txn_zwg')
                 .select('Date, id, Amount, Category')
-                .gte('Date', firstDayOfMonth)
-                .lte('Date', lastDayOfMonth);
+                .gte('Date', startDate)
+                .lte('Date', endDate);
 
             if (creditError) throw creditError;
 
@@ -191,6 +192,20 @@ const CSLzwg = () => {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div className='mt-6'>
+                <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-2 py-2 border rounded-lg"
+                />
+                <button
+                    onClick={fetchCashbookData}
+                    className="bg-blue-500 text-white px-2 py-2 rounded hover:bg-blue-600 mr-4"
+                >
+                    Refresh Data
+                </button>
             </div>
         </div>
     );

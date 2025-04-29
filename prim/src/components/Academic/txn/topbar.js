@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ViewInvoices from './levy_txn/levyOUT/viewInvoices';
+import ViewInvoices from './invoices/viewInvoices';
 import LIView from './levy_txn/levyIN/view';
 import LIpay from './levy_txn/levyIN/revenue';
 import LOView from './levy_txn/levyOUT/view';
@@ -83,6 +83,7 @@ const TopBar = () => {
                             onClick={() => {
                                 toggleDropdown('CBZ');
                                 setShowDropdown(true);
+                                
                             }}
                             className="px-4 py-2 font-bold bg-gray-700 hover:bg-gray-600 rounded"
                         >

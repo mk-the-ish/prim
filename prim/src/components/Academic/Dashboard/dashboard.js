@@ -102,6 +102,7 @@ const AdminDashboard = () => {
         // eslint-disable-next-line
     }, []);
 
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [loading, setLoading] = useState(true)
 
@@ -355,6 +356,9 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen relative">
+            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-center flex-1">Dashboard</h1>
+            </div>
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="rounded-lg shadow-md p-4 bg-white">

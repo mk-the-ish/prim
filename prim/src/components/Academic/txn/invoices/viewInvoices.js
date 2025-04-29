@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../../../../../SupaBaseConfig';
+import supabase from '../../../../SupaBaseConfig';
 
 import {
     FaUtensils,
@@ -82,7 +82,7 @@ const ViewInvoices = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {/* New Purchases Invoice Card */}
                 <div
-                    onClick={() => navigate('/levyOUT/payment')}
+                    onClick={() => navigate('/create-invoice')}
                     className="flex flex-col items-center justify-center bg-white shadow-lg rounded-lg p-6 border border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
                     <FaPlus className="text-6xl text-gray-400" />

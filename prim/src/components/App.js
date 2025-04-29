@@ -26,6 +26,7 @@ import Invoice from './Academic/reports/invoice.js';
 import AdminDashboard from './Academic/Dashboard/dashboard.js';
 import BulkInvoicing from './Academic/Dashboard/bulkInvoicing.js';
 import TopBar from './Academic/txn/topbar.js';
+import CreateInvoice from './Academic/txn/invoices/createInvoice.js';
 
 
 function App() {
@@ -42,23 +43,32 @@ function App() {
 
           <Route path="/dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
           <Route path="/bulk-invoicing" element={<ProtectedRoute><Layout><BulkInvoicing /></Layout></ProtectedRoute>} />
+          
           <Route path="/students" element={<ProtectedRoute><Layout><Students /></Layout></ProtectedRoute>} />
           <Route path="/new-student" element={<ProtectedRoute><Layout><NewStudent /></Layout></ProtectedRoute>} />
           <Route path="/student-view/:studentId" element={<ProtectedRoute><Layout><StudentView /></Layout></ProtectedRoute>} />
           <Route path="/student_update/:studentId" element={<ProtectedRoute><Layout><StudentUpdate /></Layout></ProtectedRoute>} />
+          
           <Route path="/levy" element={<ProtectedRoute><Layout><Levy /></Layout></ProtectedRoute>} />
           <Route path="/newLevyUSD/:studentId" element={<ProtectedRoute><Layout><NewLevyUSD /></Layout></ProtectedRoute>} />
           <Route path="/newLevyZWG/:studentId" element={<ProtectedRoute><Layout><NewLevyZWG /></Layout></ProtectedRoute>} />
+          
           <Route path="/tuition" element={<ProtectedRoute><Layout><Tuition /></Layout></ProtectedRoute>} />
           <Route path="/newTuitionUSD/:studentId" element={<ProtectedRoute><Layout><NewTuitionUSD /></Layout></ProtectedRoute>} />
           <Route path="/newTuitionZWG/:studentId" element={<ProtectedRoute><Layout><NewTuitionZWG /></Layout></ProtectedRoute>} />
+          
           <Route path="/commission" element={<ProtectedRoute><Layout><Commission /></Layout></ProtectedRoute>} />
           <Route path="/newCommIn" element={<ProtectedRoute><Layout><NewCommIn /></Layout></ProtectedRoute>} />
           <Route path="/newCommOut" element={<ProtectedRoute><Layout><NewCommOut /></Layout></ProtectedRoute>} />
-          <Route path="/txn" element={<ProtectedRoute><Layout><TopBar /></Layout></ProtectedRoute>} /><Route path="/newTuitionUSD/:studentId" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
+          
+          <Route path="/txn" element={<ProtectedRoute><Layout><TopBar /></Layout></ProtectedRoute>} />
+          <Route path="/create-invoice" element={<ProtectedRoute><Layout><CreateInvoice /></Layout></ProtectedRoute>} />
+          
           <Route path="/reports" element={<ProtectedRoute><Layout><Report /></Layout></ProtectedRoute>} />
           <Route path="/invoice/:studentId" element={<ProtectedRoute><Layout><Invoice /></Layout></ProtectedRoute>} />
+          
           <Route path="/financials" element={<ProtectedRoute><Layout><Financials /></Layout></ProtectedRoute>} />
+          
           <Route path="*" element={<ProtectedRoute><Layout><h1> 404 - Not Found</h1></Layout></ProtectedRoute>} />
 
 

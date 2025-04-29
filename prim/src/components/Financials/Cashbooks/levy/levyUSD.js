@@ -7,26 +7,24 @@ const CSLusd = () => {
     const [debitCategories, setDebitCategories] = useState([]);
     const [creditCategories, setCreditCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [effectiveDate, setEffectiveDate] = useState(''); // State for effective date
-    const [saving, setSaving] = useState(false); // State for save button
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
     useEffect(() => {
         fetchCashbookData();
-    }, []);
+    }, [selectedMonth]);
 
     const fetchCashbookData = async () => {
         setLoading(true);
         try {
-            const today = new Date();
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
-            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString();
+            const startDate = `${selectedMonth}-01`;
+            const endDate = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).toISOString().split('T')[0];
 
             // Fetch debit data (levy_in_txn_usd)
             const { data: debitData, error: debitError } = await supabase
                 .from('levy_in_txn_usd')
                 .select('Date, id, Amount, Category')
-                .gte('Date', firstDayOfMonth)
-                .lte('Date', lastDayOfMonth);
+                .gte('Date', startDate)
+                .lte('Date', endDate);
 
             if (debitError) throw debitError;
 
@@ -34,8 +32,8 @@ const CSLusd = () => {
             const { data: creditData, error: creditError } = await supabase
                 .from('levy_out_txn_usd')
                 .select('Date, id, Amount, Category')
-                .gte('Date', firstDayOfMonth)
-                .lte('Date', lastDayOfMonth);
+                .gte('Date', startDate)
+                .lte('Date', endDate);
 
             if (creditError) throw creditError;
 
@@ -68,41 +66,6 @@ const CSLusd = () => {
         });
 
         return totals;
-    };
-
-    const saveCashbook = async () => {
-        if (!effectiveDate) {
-            alert('Please select an effective date.');
-            return;
-        }
-
-        setSaving(true);
-
-        try {
-            const cashbook = {
-                debit: debitData,
-                credit: creditData,
-                debitTotals: calculateTotals(debitData, debitCategories),
-                creditTotals: calculateTotals(creditData, creditCategories),
-            };
-
-            const { error } = await supabase.from('Financials').insert([
-                {
-                    Date: effectiveDate,
-                    file: cashbook,
-                    type: 'cashbook_levy_usd',
-                },
-            ]);
-
-            if (error) throw error;
-
-            alert('Cashbook saved successfully!');
-        } catch (error) {
-            console.error('Error saving cashbook:', error);
-            alert('Failed to save cashbook. Please try again.');
-        } finally {
-            setSaving(false);
-        }
     };
 
     if (loading) return <p>Loading...</p>;
@@ -229,26 +192,18 @@ const CSLusd = () => {
                     </tbody>
                 </table>
             </div>
-            <div className="mt-6 text-center">
-                <button
-                    onClick={fetchCashbookData}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-4"
-                >
-                    Refresh Data
-                </button>
+            <div className="mt-6">
                 <input
-                    type="date"
-                    value={effectiveDate}
-                    onChange={(e) => setEffectiveDate(e.target.value)}
-                    className="border border-gray-300 rounded px-4 py-2 mr-4"
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-2 py-2 border rounded-lg"
                 />
                 <button
-                    onClick={saveCashbook}
-                    className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ${saving ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                    disabled={saving}
+                    onClick={fetchCashbookData}
+                    className="bg-blue-500 text-white px-2 py-2 rounded hover:bg-blue-600 mr-4"
                 >
-                    {saving ? 'Saving...' : 'Save Cashbook'}
+                    Refresh Data
                 </button>
             </div>
         </div>
