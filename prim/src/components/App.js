@@ -27,6 +27,7 @@ import AdminDashboard from './Academic/Dashboard/dashboard.js';
 import BulkInvoicing from './Academic/Dashboard/bulkInvoicing.js';
 import TopBar from './Academic/txn/topbar.js';
 import CreateInvoice from './Academic/txn/invoices/createInvoice.js';
+import Profile from './Profile/profile.js';
 
 
 function App() {
@@ -68,6 +69,8 @@ function App() {
           <Route path="/invoice/:studentId" element={<ProtectedRoute><Layout><Invoice /></Layout></ProtectedRoute>} />
           
           <Route path="/financials" element={<ProtectedRoute><Layout><Financials /></Layout></ProtectedRoute>} />
+
+          <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
           
           <Route path="*" element={<ProtectedRoute><Layout><h1> 404 - Not Found</h1></Layout></ProtectedRoute>} />
 

@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import supabase from '../../../SupaBaseConfig';
+import { Link } from 'react-router-dom';
+import { FaUserCircle } from 'react-icons/fa';
 import ViewInvoices from './invoices/viewInvoices';
 import LIView from './levy_txn/levyIN/view';
 import LIpay from './levy_txn/levyIN/revenue';
@@ -15,6 +18,29 @@ const TopBar = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showSubDropdown, setShowSubDropdown] = useState(false);
     const [activeTxn, setActiveTxn] = useState('CBZ_viewInvoices');
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        fetchUserName();
+    }, []);
+
+    const fetchUserName = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data, error } = await supabase
+                    .from('user_roles')
+                    .select('name')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (error) throw error;
+                setUserName(data.name);
+            }
+        } catch (error) {
+            console.error('Error fetching user name:', error.message);
+        }
+    };
 
     const toggleDropdown = (dropdown) => {
         setActiveDropdown((prev) => (prev === dropdown ? null : dropdown));
@@ -74,6 +100,10 @@ const TopBar = () => {
         <div className="h-screen flex flex-col">
             {/* Fixed Top Navigation Bar */}
             <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+                <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
+                    <FaUserCircle className="text-lg" />
+                    <span className="ml-4">{userName || 'Profile'}</span>
+                </Link>
                 <h1 className="text-2xl font-bold text-center flex-1">Account Transactions</h1>
 
                 <div className="flex space-x-4 relative">
