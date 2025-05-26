@@ -28,57 +28,74 @@ import BulkInvoicing from './Academic/Dashboard/bulkInvoicing.js';
 import TopBar from './Academic/txn/topbar.js';
 import CreateInvoice from './Academic/txn/invoices/createInvoice.js';
 import Profile from './Profile/profile.js';
+import Unauthorised from './Auth/unauthorised.js';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 10, // 10 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 
 function App() {
   return (
-    <AuthProvider>
-      <div className='App'>
-        <Routes>
-          {/* Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <div className='App'>
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          <Route path="/" element={<Login />} />
+            <Route path="/" element={<Login />} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-          <Route path="/bulk-invoicing" element={<ProtectedRoute><Layout><BulkInvoicing /></Layout></ProtectedRoute>} />
-          
-          <Route path="/students" element={<ProtectedRoute><Layout><Students /></Layout></ProtectedRoute>} />
-          <Route path="/new-student" element={<ProtectedRoute><Layout><NewStudent /></Layout></ProtectedRoute>} />
-          <Route path="/student-view/:studentId" element={<ProtectedRoute><Layout><StudentView /></Layout></ProtectedRoute>} />
-          <Route path="/student_update/:studentId" element={<ProtectedRoute><Layout><StudentUpdate /></Layout></ProtectedRoute>} />
-          
-          <Route path="/levy" element={<ProtectedRoute><Layout><Levy /></Layout></ProtectedRoute>} />
-          <Route path="/newLevyUSD/:studentId" element={<ProtectedRoute><Layout><NewLevyUSD /></Layout></ProtectedRoute>} />
-          <Route path="/newLevyZWG/:studentId" element={<ProtectedRoute><Layout><NewLevyZWG /></Layout></ProtectedRoute>} />
-          
-          <Route path="/tuition" element={<ProtectedRoute><Layout><Tuition /></Layout></ProtectedRoute>} />
-          <Route path="/newTuitionUSD/:studentId" element={<ProtectedRoute><Layout><NewTuitionUSD /></Layout></ProtectedRoute>} />
-          <Route path="/newTuitionZWG/:studentId" element={<ProtectedRoute><Layout><NewTuitionZWG /></Layout></ProtectedRoute>} />
-          
-          <Route path="/commission" element={<ProtectedRoute><Layout><Commission /></Layout></ProtectedRoute>} />
-          <Route path="/newCommIn" element={<ProtectedRoute><Layout><NewCommIn /></Layout></ProtectedRoute>} />
-          <Route path="/newCommOut" element={<ProtectedRoute><Layout><NewCommOut /></Layout></ProtectedRoute>} />
-          
-          <Route path="/txn" element={<ProtectedRoute><Layout><TopBar /></Layout></ProtectedRoute>} />
-          <Route path="/create-invoice" element={<ProtectedRoute><Layout><CreateInvoice /></Layout></ProtectedRoute>} />
-          
-          <Route path="/reports" element={<ProtectedRoute><Layout><Report /></Layout></ProtectedRoute>} />
-          <Route path="/invoice/:studentId" element={<ProtectedRoute><Layout><Invoice /></Layout></ProtectedRoute>} />
-          
-          <Route path="/financials" element={<ProtectedRoute><Layout><Financials /></Layout></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
+            <Route path="/bulk-invoicing" element={<ProtectedRoute><Layout><BulkInvoicing /></Layout></ProtectedRoute>} />
+            
+            <Route path="/students" element={<ProtectedRoute><Layout><Students /></Layout></ProtectedRoute>} />
+            <Route path="/new-student" element={<ProtectedRoute><Layout><NewStudent /></Layout></ProtectedRoute>} />
+            <Route path="/student-view/:studentId" element={<ProtectedRoute><Layout><StudentView /></Layout></ProtectedRoute>} />
+            <Route path="/student_update/:studentId" element={<ProtectedRoute><Layout><StudentUpdate /></Layout></ProtectedRoute>} />
+            
+            <Route path="/levy" element={<ProtectedRoute><Layout><Levy /></Layout></ProtectedRoute>} />
+            <Route path="/newLevyUSD/:studentId" element={<ProtectedRoute><Layout><NewLevyUSD /></Layout></ProtectedRoute>} />
+            <Route path="/newLevyZWG/:studentId" element={<ProtectedRoute><Layout><NewLevyZWG /></Layout></ProtectedRoute>} />
+            
+            <Route path="/tuition" element={<ProtectedRoute><Layout><Tuition /></Layout></ProtectedRoute>} />
+            <Route path="/newTuitionUSD/:studentId" element={<ProtectedRoute><Layout><NewTuitionUSD /></Layout></ProtectedRoute>} />
+            <Route path="/newTuitionZWG/:studentId" element={<ProtectedRoute><Layout><NewTuitionZWG /></Layout></ProtectedRoute>} />
+            
+            <Route path="/commission" element={<ProtectedRoute><Layout><Commission /></Layout></ProtectedRoute>} />
+            <Route path="/newCommIn" element={<ProtectedRoute><Layout><NewCommIn /></Layout></ProtectedRoute>} />
+            <Route path="/newCommOut" element={<ProtectedRoute><Layout><NewCommOut /></Layout></ProtectedRoute>} />
+            
+            <Route path="/txn" element={<ProtectedRoute><Layout><TopBar /></Layout></ProtectedRoute>} />
+            <Route path="/create-invoice" element={<ProtectedRoute><Layout><CreateInvoice /></Layout></ProtectedRoute>} />
+            
+            <Route path="/reports" element={<ProtectedRoute><Layout><Report /></Layout></ProtectedRoute>} />
+            <Route path="/invoice/:studentId" element={<ProtectedRoute><Layout><Invoice /></Layout></ProtectedRoute>} />
+            
+            <Route path="/financials" element={<ProtectedRoute><Layout><Financials /></Layout></ProtectedRoute>} />
 
-          <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
-          
-          <Route path="*" element={<ProtectedRoute><Layout><h1> 404 - Not Found</h1></Layout></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+            
+            <Route path="*" element={<ProtectedRoute><Layout><h1> 404 - Not Found</h1></Layout></ProtectedRoute>} />
+            <Route path="/unauthorised" element={<ProtectedRoute><Layout><Unauthorised /></Layout></ProtectedRoute>} /> 
 
 
 
-        </Routes>
-      </div>
-    </AuthProvider>
+          </Routes>
+        </div>
+      </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
 
   );
 }

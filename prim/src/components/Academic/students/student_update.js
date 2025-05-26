@@ -5,6 +5,8 @@ import supabase from '../../../SupaBaseConfig';
 const StudentUpdate = () => {
     const { studentId } = useParams();
     const navigate = useNavigate();
+    const [userName, setUserName] = useState('');
+    const [userRole, setUserRole] = useState('');
     const [student, setStudent] = useState({
         FirstNames: '',
         Surname: '',
