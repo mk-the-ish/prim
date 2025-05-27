@@ -69,7 +69,7 @@ function Levy() {
             </div>
 
             {/* Main Content - Add padding-top to account for fixed header */}
-            <div className="px-6">
+            <div className="pt-5 px-6">
                 {activeTab === 'USD' && <LevyUSD />}
                 {activeTab === 'ZWG' && <LevyZWG />}
             </div>

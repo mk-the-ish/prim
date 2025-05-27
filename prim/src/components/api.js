@@ -307,3 +307,63 @@ export const fetchStudentsForInvoicing = async ({ gradeFilter, classFilter, page
         totalPages: Math.ceil(count / pageSize)
     };
 };
+
+export const fetchLevyUSD = async () => {
+    const { data, error } = await supabase
+        .from('levy_usd')
+        .select('*, Students(FirstNames, Surname, Grade, Class, Gender)')
+        .order('Date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+};
+
+export const fetchLevyZWG = async () => {
+    const { data, error } = await supabase
+        .from('levy_zwg')
+        .select('*, Students(FirstNames, Surname, Grade, Class, Gender)')
+        .order('Date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+};
+
+export const fetchTuitionUSD = async () => {
+    const { data, error } = await supabase
+        .from('tuition_usd')
+        .select('*, Students(FirstNames, Surname, Grade, Class, Gender)')
+        .order('Date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+};
+
+export const fetchTuitionZWG = async () => {
+    const { data, error } = await supabase
+        .from('tuition_zwg')
+        .select('*, Students(FirstNames, Surname, Grade, Class, Gender)')
+        .order('Date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+};
+
+export const fetchCommissionsIn = async () => {
+    const { data, error } = await supabase
+        .from('commissions_in')
+        .select('id, Date, From, Amount, Description')
+        .order('Date', { ascending: false });
+    
+    if (error) throw error
+    return data;
+};
+
+export const fetchCommissionsOut = async () => {
+    const { data, error } = await supabase
+        .from('commissions_out')
+        .select('id, Date, From, Amount, Description')
+        .order('Date', { ascending: false });
+
+    if (error) throw error
+    return data;
+};
