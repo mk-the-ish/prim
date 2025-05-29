@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar, FaWallet, FaCreditCard, FaPager } from 'react-icons/fa'; // Example icons
 
-const Layout = ({ children }) => {
+const Sidebar = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   const toggleSidebar = () => {
@@ -98,4 +98,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default Sidebar;

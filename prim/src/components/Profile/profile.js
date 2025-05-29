@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCircleIcon, CogIcon } from '@heroicons/react/24/outline';
-import supabase from '../../SupaBaseConfig';
+import supabase from '../../db/SupaBaseConfig';
 
 const Profile = () => {
     const navigate = useNavigate();

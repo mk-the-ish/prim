@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser, fetchTuitionZWG } from '../../api';
+import { fetchUser } from '../../api/userApi';
+import { fetchTuitionZWG } from '../../api/viewPaymentsApi';
 import { useNavigate } from 'react-router-dom';
 
 const ITEMS_PER_PAGE = 10;

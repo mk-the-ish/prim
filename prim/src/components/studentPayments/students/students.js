@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser, fetchStudents } from '../../api';
+import { fetchUser } from '../../api/userApi';
+import { fetchStudents } from '../../api/studentsInfoApi'
 
 const Students = () => {
     const [searchTerm, setSearchTerm] = useState('');

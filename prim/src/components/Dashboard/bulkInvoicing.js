@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { fetchUser, fetchStudentsForInvoicing } from '../../api';
+import { fetchUser } from '../../components/api/userApi';
+import { fetchStudentsForInvoicing } from '../api/dashboardApi';
 
 const styles = StyleSheet.create({
     page: { padding: 30 },

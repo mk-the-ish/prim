@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../api';
+import { fetchUser } from '../../api/userApi';
 import DailyReport from './daily';
 import MonthlyReport from './monthly';
 import TermlyReport from './termly';

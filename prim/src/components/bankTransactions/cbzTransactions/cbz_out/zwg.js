@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import supabase from '../../../../../SupaBaseConfig';
+import supabase from '../../../../db/SupaBaseConfig';
 
 const LOzwg = () => {
     const [formData, setFormData] = useState({

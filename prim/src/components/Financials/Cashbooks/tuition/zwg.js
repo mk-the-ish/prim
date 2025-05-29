@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../../SupaBaseConfig';
+import supabase from './../../../../db/SupaBaseConfig';
 
 const CSTzwg = () => {
     const [debitData, setDebitData] = useState([]);

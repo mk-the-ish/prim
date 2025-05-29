@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import supabase from '../../../SupaBaseConfig';
+import supabase from '../../../db/SupaBaseConfig';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../api';
+import { fetchUser } from '../../api/userApi';
 
 
 const StudentUpdate = () => {

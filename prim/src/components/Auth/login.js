@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import supabase from '../../SupaBaseConfig';
+import supabase from '../../db/SupaBaseConfig';
 
 const Login = () => {
     const [email, setEmail] = useState('');

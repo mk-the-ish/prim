@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import supabase from '../../SupaBaseConfig';
+import supabase from '../../db/SupaBaseConfig';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');

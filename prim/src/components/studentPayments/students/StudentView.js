@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../SupaBaseConfig';
+import supabase from '../../../db/SupaBaseConfig';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 

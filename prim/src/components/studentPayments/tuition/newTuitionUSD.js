@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import supabase from '../../../SupaBaseConfig';
-import { fetchUser } from '../../api';
+import supabase from '../../../db/SupaBaseConfig';
+import { fetchUser } from '../../api/userApi';
 
 const NewTuitionUSD = () => {
     const { studentId } = useParams();

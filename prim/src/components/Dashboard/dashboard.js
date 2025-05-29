@@ -4,11 +4,10 @@ import { FaUserCircle } from "react-icons/fa";
 import { Pie, Bar } from 'react-chartjs-2';
 import { useQuery } from "@tanstack/react-query";
 import {
-    fetchDashboardUser,
     fetchDashboardStats,
     fetchStudentChartData,
     fetchCashFlowData,
-} from '../../api';
+} from '../../components/api/dashboardApi';
 import {
     Chart as ChartJS,
     ArcElement,
@@ -25,6 +24,7 @@ import {
     CurrencyDollarIcon
 } from '@heroicons/react/24/solid';
 import { PlusIcon } from '@heroicons/react/24/solid';
+import { fetchUser } from "../api/userApi";
 
 // Register Chart.js components
 ChartJS.register(
@@ -43,8 +43,8 @@ const AdminDashboard = () => {
     const year = new Date().getFullYear();
 
     const { data: userData, isLoading: userLoading } = useQuery({
-        queryKey: ['dashboardUser'],
-        queryFn: fetchDashboardUser,
+        queryKey: ['User'],
+        queryFn: fetchUser,
         onError: () => navigate('/login'),
         onSuccess: (data) => {
             if (!data || data.role !== 'admin') {
@@ -87,7 +87,6 @@ const AdminDashboard = () => {
             </div>
         );
     }
-
     
     return (
         <div className="p-6 bg-gray-100 min-h-screen relative">

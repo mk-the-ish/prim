@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../api.js';
-import CSLevy from './Cashbooks/levy/levy.js';
-import CSTuition from './Cashbooks/tuition/tuition.js';
-import Statements from './Statements/statements.js';
-import Budget from './Budget/budget.js';
-import HR from './HR/HR.js';
+import { fetchUser } from '../api/userApi.js';
+import CSLevy from './../financials/Cashbooks/levy/levy.js';
+import CSTuition from './../financials/Cashbooks/tuition/tuition.js';
+import Statements from './../financials/Statements/statements.js';
+import Budget from './../financials/Budget/budget.js';
+import HR from './../financials/HR/HR.js';
 
 const Financials = () => {
     const [activeFinancial, setActiveFinancial] = useState('CSLevy');

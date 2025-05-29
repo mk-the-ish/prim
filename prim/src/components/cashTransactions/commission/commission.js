@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import CommIN from './commIN';
-import CommOUT from './commOUT';
+import CommIN from './in/commIN';
+import CommOUT from './out/commOUT';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../api';
+import { fetchUser } from '../../api/userApi';
 
 function Commission() {
     const [activeCommission, setActiveCommission] = useState('IN'); // Initial state

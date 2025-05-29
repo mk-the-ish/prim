@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../SupaBaseConfig';
+import supabase from '../../../db/SupaBaseConfig';
 
 const YearlyReport = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());

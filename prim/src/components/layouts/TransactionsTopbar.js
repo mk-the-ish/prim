@@ -2,16 +2,16 @@ import React, { useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../api';
-import ViewInvoices from './invoices/viewInvoices';
-import LIView from './levy_txn/levyIN/view';
-import LIpay from './levy_txn/levyIN/revenue';
-import LOView from './levy_txn/levyOUT/view';
-import LOpay from './levy_txn/levyOUT/payment';
-import TIView from './tuition_txn/tuitionIN/view';
-import TIpay from './tuition_txn/tuitionIN/revenue';
-import TOView from './tuition_txn/tuitionOUT/view';
-import TOpay from './tuition_txn/tuitionOUT/payment';
+import { fetchUser } from '../../components/api/userApi';
+import ViewInvoices from './../bankTransactions/purchasesInvoices/viewInvoices';
+import LIView from './../bankTransactions/cbzTransactions/cbz_in/view';
+import LIpay from './../bankTransactions/cbzTransactions/cbz_in/revenue';
+import LOView from './../bankTransactions/cbzTransactions/cbz_out/view';
+import LOpay from './../bankTransactions/cbzTransactions/cbz_out/payment';
+import TIView from './../bankTransactions/zbTransactions/zb_in/view';
+import TIpay from './../bankTransactions/zbTransactions/zb_in/revenue';
+import TOView from './../bankTransactions/zbTransactions/zb_out/view';
+import TOpay from './../bankTransactions/zbTransactions/zb_out/payment';
 
 const TopBar = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
