@@ -37,6 +37,42 @@ ChartJS.register(
     Title
 );
 
+const defaultChartData = {
+    genderData: {
+        labels: ['Male', 'Female'],
+        datasets: [{
+            data: [0, 0],
+            backgroundColor: ['#36A2EB', '#FF6384'],
+            hoverBackgroundColor: ['#36A2EB80', '#FF638480']
+        }]
+    },
+    gradeData: {
+        labels: ['Grade 1'],
+        datasets: [{
+            data: [0],
+            backgroundColor: ['#FF6384'],
+            hoverBackgroundColor: ['#FF638480']
+        }]
+    }
+};
+
+const defaultCashFlowData = {
+    levyCashFlow: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+            { label: 'Levy IN', data: Array(12).fill(0), backgroundColor: '#36A2EB' },
+            { label: 'Levy OUT', data: Array(12).fill(0), backgroundColor: '#FF6384' }
+        ]
+    },
+    tuitionCashFlow: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+            { label: 'Tuition IN', data: Array(12).fill(0), backgroundColor: '#4BC0C0' },
+            { label: 'Tuition OUT', data: Array(12).fill(0), backgroundColor: '#FFCE56' }
+        ]
+    }
+};
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,14 +97,13 @@ const AdminDashboard = () => {
     });
 
     // Fetch student chart data
-    const { data: chartData = {}, isLoading: chartsLoading } = useQuery({
+    const { data: chartData = defaultChartData, isLoading: chartsLoading } = useQuery({
         queryKey: ['studentCharts'],
         queryFn: fetchStudentChartData,
         enabled: !!userData?.role
     });
 
-    // Fetch cash flow data
-    const { data: cashFlowData = {}, isLoading: cashFlowLoading } = useQuery({
+    const { data: cashFlowData = defaultCashFlowData, isLoading: cashFlowLoading } = useQuery({
         queryKey: ['cashFlow', year],
         queryFn: () => fetchCashFlowData(year),
         enabled: !!userData?.role

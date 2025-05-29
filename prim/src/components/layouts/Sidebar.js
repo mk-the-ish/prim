@@ -20,9 +20,13 @@ const Sidebar = ({ children }) => {
         <div>
           <button
             onClick={toggleSidebar}
-            className="p-4 focus:outline-none hover:bg-gray-700"
+            className="w-full p-4 focus:outline-none hover:bg-gray-700 justify-center items-center"
           >
-            {isSidebarExpanded ? 'Retract' : 'Expand'}
+            <img
+              src={`/images/${isSidebarExpanded ? 'favicon.png' : 'prim.png'}`}
+              alt={isSidebarExpanded ? 'Retract' : 'Expand'}
+              className="h-8 w-auto  transition-all duration-300"
+            />
           </button>
           <nav className="mt-4">
             <ul>

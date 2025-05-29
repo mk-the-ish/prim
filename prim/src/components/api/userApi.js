@@ -1,4 +1,4 @@
-import { supabase } from './../../db/SupaBaseConfig.js';
+import supabase  from './../../db/SupaBaseConfig.js';
 /**
  * Fetches the authenticated user and checks their role against required roles.
  * @param {Array<string>} requiredRoles - Array of roles that are allowed to access the resource.

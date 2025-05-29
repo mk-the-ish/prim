@@ -1,4 +1,4 @@
-import { supabase } from '../../db/SupaBaseConfig.js';
+import supabase from '../../db/SupaBaseConfig.js';
 // Fetching transactions for CBZ and ZB banks
 
 export const fetchCBZTransactions = async (year) => {

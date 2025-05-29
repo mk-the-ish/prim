@@ -1,4 +1,4 @@
-import { supabase } from '../../db/SupaBaseConfig';
+import supabase from '../../db/SupaBaseConfig';
 
 export const fetchLevyUSD = async () => {
     const { data, error } = await supabase

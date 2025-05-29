@@ -1,4 +1,4 @@
-import { supabase } from '../../db/SupaBaseConfig.js';
+import supabase from '../../db/SupaBaseConfig.js';
 
 export const fetchStudents = async ({ gradeFilter, classFilter, genderFilter }) => {
     // First check if user has required role
