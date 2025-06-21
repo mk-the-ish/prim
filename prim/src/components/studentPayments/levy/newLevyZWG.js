@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '../../../db/SupaBaseConfig';
 import { fetchUser } from '../../api/userApi';
+import TopBar from '../../ui/topbar';
+import Form from '../../ui/form';
+import Loader from '../../ui/loader';
+import { useToast } from '../../../contexts/ToastContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const NewLevyZWG = () => {
     const { studentId } = useParams();
@@ -11,18 +15,14 @@ const NewLevyZWG = () => {
     const [formData, setFormData] = useState({
         StudentID: studentId,
         Date: '',
-        form:'',
+        form: '',
         Amount: '',
         USD_equivalent: '',
         reference: '',
     });
     const [loading, setLoading] = useState(false);
-    const [receiptData, setReceiptData] = useState(null);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+    const { addToast } = useToast();
+    const { currentTheme } = useTheme();
 
     const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
@@ -30,17 +30,36 @@ const NewLevyZWG = () => {
         onError: () => navigate('/login')
     });
 
+    const paymentTimelines = [
+        { value: 'normal', label: 'Normal' },
+        { value: 'prepayment', label: 'Prepayment' },
+        { value: 'recovery', label: 'Recovery' }
+    ];
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { error: insertError } = await supabase.from('levy_zwg').insert([formData]);
+            // Insert payment into Fees table (not levy_zwg, as per new structure)
+            const paymentRow = {
+                ...formData,
+                Type: 'levy',
+                Currency: 'zwg',
+                Amount: parseFloat(formData.Amount),
+                StudentID: studentId,
+            };
+            const { error: insertError } = await supabase.from('Fees').insert([paymentRow]);
             if (insertError) throw insertError;
 
+            // Update student's Levy_Owing
             const { data: studentData, error: fetchError } = await supabase
                 .from('Students')
-                .select('FirstNames, Surname, Grade, Class, Levy_Owing')
+                .select('Levy_Owing')
                 .eq('id', studentId)
                 .single();
             if (fetchError) throw fetchError;
@@ -53,155 +72,77 @@ const NewLevyZWG = () => {
                 .eq('id', studentId);
             if (updateError) throw updateError;
 
-            setReceiptData({
-                ...formData,
-                studentName: `${studentData.FirstNames} ${studentData.Surname}`,
-                grade: studentData.Grade,
-                className: studentData.Class,
-                newLevyOwing,
-            });
-
-            setTimeout(() => {
-                window.print();
-            }, 500);
-
-            alert('Payment added successfully, and Levy Owing updated!');
+            addToast('ZWG Levy payment added successfully!', 'success');
+            navigate(`/student-view/${studentId}`);
         } catch (error) {
-            console.error('Error processing payment:', error);
-            alert('Failed to process payment. Please try again.');
+            addToast('Failed to process payment. Please try again.', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    if (receiptData) {
-        return (
-            <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-center mb-6">Payment Receipt</h2>
-                <p><strong>Student Name:</strong> {receiptData.studentName}</p>
-                <p><strong>Grade:</strong> {receiptData.grade}</p>
-                <p><strong>Class:</strong> {receiptData.className}</p>
-                <p><strong>Student ID:</strong> {receiptData.StudentID}</p>
-                <p><strong>Date:</strong> {receiptData.Date}</p>
-                <p><strong>Amount:</strong> ${parseFloat(receiptData.Amount).toFixed(2)}</p>
-                <p><strong>USD Equivalent:</strong> ${parseFloat(receiptData.USD_equivalent).toFixed(2)}</p>
-                <p><strong>Reference:</strong> {receiptData.reference}</p>
-                <p><strong>New Levy Owing:</strong> ${receiptData.newLevyOwing.toFixed(2)}</p>
-                <div className="mt-6 flex justify-center">
-                    <button
-                        onClick={() => navigate(`/student-view/${studentId}`)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
-                    >
-                        Back to Student View
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     if (loading || userLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading Payment Form...</p>
-                </div>
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: currentTheme.background?.default }}
+            >
+                <Loader type="card" count={1} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Fixed Header */}
-            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-                <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
-                    <FaUserCircle className="text-lg" />
-                    <span className="ml-4">{userData?.name || 'Profile'}</span>
-                </Link>
-                <h1 className="text-2xl font-bold text-center flex-1">New ZWG Levy Payment</h1>
-                <Link
-                    to={`/student-view/${studentId}`}
-                    className="text-white hover:text-gray-300 transition-colors duration-200"
-                >
-                    Back to Student
-                </Link>
-            </div>
-
-            {/* Main Content */}
+        <div
+            className="min-h-screen"
+            style={{ background: currentTheme.background?.default }}
+        >
+            <TopBar title="New ZWG Levy Payment" userName={userData?.name} />
             <div className="px-6">
-        <div className="max-w-lg mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Date</label>
-                    <input
+                <Form onSubmit={handleSubmit} loading={loading}>
+                    <Form.Input
+                        label="Date"
                         type="date"
                         name="Date"
                         value={formData.Date}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Payment Timeline</label>
-                    <select
+                    <Form.Select
+                        label="Payment Timeline"
                         name="form"
                         value={formData.form}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        options={paymentTimelines}
                         required
-                    >
-                        <option value="">Select Payment Timeline</option>
-                        <option value="normal">normal</option>
-                        <option value="prepayment">prepayment</option>
-                        <option value="recovery">recovery</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Amount</label>
-                    <input
+                    />
+                    <Form.Input
+                        label="Amount"
                         type="number"
                         name="Amount"
                         value={formData.Amount}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">USD Equivalent</label>
-                    <input
+                    <Form.Input
+                        label="USD Equivalent"
                         type="number"
                         name="USD_equivalent"
                         value={formData.USD_equivalent}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Reference</label>
-                    <input
+                    <Form.Input
+                        label="Reference"
                         type="text"
                         name="reference"
                         value={formData.reference}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <button
-                    type="submit"
-                    className={`w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                    disabled={loading}
-                >
-                    {loading ? 'Adding...' : 'Add Payment'}
-                </button>
-            </form>
-                </div>
+                </Form>
             </div>
-            </div>
+        </div>
     );
 };
 

@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar, FaWallet, FaCreditCard, FaPager } from 'react-icons/fa'; // Example icons
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar,
+  FaWallet, FaCreditCard, FaPager, FaMoon, FaSun
+} from 'react-icons/fa';
+import Button from '../ui/button';
+import { useTheme } from '../../contexts/ThemeContext';
+
+const navLinks = [
+  { to: '/dashboard', icon: <FaPager />, label: 'Dashboard' },
+  { to: '/students', icon: <FaUserGraduate />, label: 'Students' },
+  { to: '/levy', icon: <FaMoneyBill />, label: 'Levy' },
+  { to: '/tuition', icon: <FaWallet />, label: 'Tuition' },
+  { to: '/commission', icon: <FaDonate />, label: 'Commission' },
+  { to: '/reports', icon: <FaChartBar />, label: 'Reports' },
+];
+
+const bottomLinks = [
+  { to: '/transactions', icon: <FaCreditCard />, label: 'Transactions' },
+  { to: '/financials', icon: <FaFileInvoiceDollar />, label: 'Financials' },
+];
 
 const Sidebar = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const { themeName, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const toggleSidebar = () => {
-    setIsSidebarExpanded(!isSidebarExpanded);
-  };
+  const toggleSidebar = () => setIsSidebarExpanded((v) => !v);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -23,49 +43,25 @@ const Sidebar = ({ children }) => {
             className="w-full p-4 focus:outline-none hover:bg-gray-700 justify-center items-center"
           >
             <img
-              src={`/images/${isSidebarExpanded ? 'favicon.png' : 'prim.png'}`}
+              src={`/images/${isSidebarExpanded ? 'prim.png' : 'favicon.png'}`}
               alt={isSidebarExpanded ? 'Retract' : 'Expand'}
               className="h-8 w-auto  transition-all duration-300"
             />
           </button>
           <nav className="mt-4">
             <ul>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/dashboard" className="flex items-center">
-                  <FaPager className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Dashboard</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/students" className="flex items-center">
-                  <FaUserGraduate className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Students</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/levy" className="flex items-center">
-                  <FaMoneyBill className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Levy</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/tuition" className="flex items-center">
-                  <FaWallet className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Tuition</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/commission" className="flex items-center">
-                  <FaDonate className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Commission</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700">
-                <Link to="/reports" className="flex items-center">
-                  <FaChartBar className="text-xl" />
-                  {isSidebarExpanded && <span className="ml-4">Reports</span>}
-                </Link>
-              </li>
+              {navLinks.map(({ to, icon, label }) => (
+                <li key={to} className="flex items-center p-2">
+                  <Button
+                    onClick={() => navigate(to)}
+                    variant={location.pathname === to ? 'primary' : 'secondary'}
+                    className={`flex items-center w-full justify-start ${isSidebarExpanded ? 'pl-2' : 'justify-center'} ${location.pathname === to ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                  >
+                    <span className="text-xl">{icon}</span>
+                    {isSidebarExpanded && <span className="ml-4">{label}</span>}
+                  </Button>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
@@ -74,17 +70,34 @@ const Sidebar = ({ children }) => {
         <div className="mb-4">
           <nav>
             <ul>
-              <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/txn" className="flex items-center">
-                  <FaCreditCard className="text-lg" />
-                  {isSidebarExpanded && <span className="ml-4">Transactions</span>}
-                </Link>
-              </li>
-              <li className="flex items-center p-4 hover:bg-gray-700 text-sm">
-                <Link to="/financials" className="flex items-center">
-                  <FaFileInvoiceDollar className="text-lg" />
-                  {isSidebarExpanded && <span className="ml-4">Financials</span>}
-                </Link>
+              {bottomLinks.map(({ to, icon, label }) => (
+                <li key={to} className="flex items-center p-2">
+                  <Button
+                    onClick={() => navigate(to)}
+                    variant={location.pathname === to ? 'primary' : 'secondary'}
+                    className={`flex items-center w-full justify-start text-sm ${isSidebarExpanded ? 'pl-2' : 'justify-center'} ${location.pathname === to ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                  >
+                    <span className="text-lg">{icon}</span>
+                    {isSidebarExpanded && <span className="ml-4">{label}</span>}
+                  </Button>
+                </li>
+              ))}
+              {/* Theme Toggle Button */}
+              <li className="flex items-center p-2 mt-2">
+                <Button
+                  onClick={toggleTheme}
+                  variant="secondary"
+                  className={`flex items-center w-full justify-start text-sm ${isSidebarExpanded ? 'pl-2' : 'justify-center'}`}
+                >
+                  <span className="text-lg">
+                    {themeName === 'light' ? <FaMoon /> : <FaSun />}
+                  </span>
+                  {isSidebarExpanded && (
+                    <span className="ml-4">
+                      {themeName === 'light' ? 'Dark Mode' : 'Light Mode'}
+                    </span>
+                  )}
+                </Button>
               </li>
             </ul>
           </nav>
@@ -100,6 +113,6 @@ const Sidebar = ({ children }) => {
       </div>
     </div>
   );
-};
+}
 
 export default Sidebar;

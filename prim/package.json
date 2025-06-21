@@ -9,6 +9,7 @@
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
     "@react-pdf/renderer": "^4.3.0",
+    "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-query": "^5.75.5",
     "@tanstack/react-query-devtools": "^5.75.5",
     "@testing-library/dom": "^10.4.0",
@@ -27,6 +28,7 @@
     "react-router-dom": "^7.3.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
+    "react-transition-group": "^4.4.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

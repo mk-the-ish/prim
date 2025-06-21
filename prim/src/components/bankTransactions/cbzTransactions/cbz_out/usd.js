@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import supabase from '../../../../db/SupaBaseConfig';
+import Form from '../../../ui/form';
+import TopBar from '../../../ui/topbar';
+import Button from '../../../ui/button';
+import SkeletonLoader from '../../../ui/loader';
 
 const LOusd = () => {
     const [formData, setFormData] = useState({
@@ -7,6 +11,9 @@ const LOusd = () => {
         Description: '',
         To: '',
         Amount: '',
+        Category: 'levy', // Added field
+        Bank: 'CBZ',     // Added field
+        Currency: 'USD'  // Added field
     });
     const [loading, setLoading] = useState(false);
 
@@ -19,11 +26,21 @@ const LOusd = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { error } = await supabase.from('levy_out_txn_usd').insert([formData]);
+            const { error } = await supabase
+                .from('OutgoingBankTransactions')
+                .insert([formData]);
             if (error) throw error;
 
             alert('Transaction added successfully!');
-            setFormData({ Date: '', Description: '', To: '', Amount: '' });
+            setFormData({
+                Date: '',
+                Description: '',
+                To: '',
+                Amount: '',
+                Category: 'levy',
+                Bank: 'CBZ',
+                Currency: 'USD'
+            });
         } catch (error) {
             console.error('Error adding transaction:', error);
             alert('Failed to add transaction. Please try again.');
@@ -32,63 +49,53 @@ const LOusd = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <SkeletonLoader type="card" className="w-1/3" />
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-lg mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-center mb-6">Add USD Levy Payment</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Date</label>
-                    <input
+        <div className="min-h-screen bg-gray-100">
+            <TopBar title="Add USD Levy Payment" />
+            <div className="px-6">
+                <Form onSubmit={handleSubmit} loading={loading}>
+                    <Form.Input
+                        label="Date"
                         type="date"
                         name="Date"
                         value={formData.Date}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Description</label>
-                    <input
+                    <Form.Input
+                        label="Description"
                         type="text"
                         name="Description"
                         value={formData.Description}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">To</label>
-                    <input
+                    <Form.Input
+                        label="To"
                         type="text"
                         name="To"
                         value={formData.To}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Amount</label>
-                    <input
+                    <Form.Input
+                        label="Amount"
                         type="number"
                         name="Amount"
                         value={formData.Amount}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <button
-                    type="submit"
-                    className={`w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                    disabled={loading}
-                >
-                    {loading ? 'Adding...' : 'Add Transaction'}
-                </button>
-            </form>
+                </Form>
+            </div>
         </div>
     );
 };

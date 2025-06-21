@@ -53,7 +53,7 @@ const Financials = () => {
     return (
         <div className="flex flex-col h-screen">
             {/* Top Bar */}
-            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center overflow-visible z-20 relative">
                 <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
                     <FaUserCircle className="text-lg" />
                     <span className="ml-4">{userData?.name || 'Profile'}</span>

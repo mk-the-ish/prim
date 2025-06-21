@@ -7,18 +7,19 @@ const CSLzwg = () => {
     const [debitCategories, setDebitCategories] = useState([]);
     const [creditCategories, setCreditCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     
 
     useEffect(() => {
         fetchCashbookData();
-    }, [selectedMonth]);
+    }, [selectedYear, selectedMonth]);
 
     const fetchCashbookData = async () => {
         setLoading(true);
         try {
-            const startDate = `${selectedMonth}-01`;
-            const endDate = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).toISOString().split('T')[0];
+            const startDate = new Date(selectedYear, selectedMonth - 1, 1).toISOString();
+            const endDate = new Date(selectedYear, selectedMonth, 0).toISOString();
 
             // Fetch debit data (levy_in_txn_usd)
             const { data: debitData, error: debitError } = await supabase
@@ -76,7 +77,33 @@ const CSLzwg = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            <h1 className="text-3xl font-semibold mb-6 text-center">Levy ZWG Cashbook</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-semibold">Levy ZWG Cashbook</h1>
+                <div className="flex gap-4">
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                        className="px-4 py-2 border rounded-lg"
+                    >
+                        {Array.from({ length: 12 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                                {new Date(2000, i, 1).toLocaleString('default', { month: 'long' })}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        className="px-4 py-2 border rounded-lg"
+                    >
+                        {Array.from({ length: 5 }, (_, i) => (
+                            <option key={i} value={new Date().getFullYear() - i}>
+                                {new Date().getFullYear() - i}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
             <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead>
@@ -192,20 +219,6 @@ const CSLzwg = () => {
                         </tr>
                     </tbody>
                 </table>
-            </div>
-            <div className='mt-6'>
-                <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="px-2 py-2 border rounded-lg"
-                />
-                <button
-                    onClick={fetchCashbookData}
-                    className="bg-blue-500 text-white px-2 py-2 rounded hover:bg-blue-600 mr-4"
-                >
-                    Refresh Data
-                </button>
             </div>
         </div>
     );

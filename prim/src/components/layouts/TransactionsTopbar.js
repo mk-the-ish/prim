@@ -12,6 +12,7 @@ import TIView from './../bankTransactions/zbTransactions/zb_in/view';
 import TIpay from './../bankTransactions/zbTransactions/zb_in/revenue';
 import TOView from './../bankTransactions/zbTransactions/zb_out/view';
 import TOpay from './../bankTransactions/zbTransactions/zb_out/payment';
+import ViewPC from '../cashTransactions/pettyCash/viewPC';
 
 const TopBar = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -74,6 +75,8 @@ const TopBar = () => {
                 return <TIView />;
             case 'ZB_out':
                 return <TOView />;
+            case 'Petty_Cash':
+                return <ViewPC />;
             default:
                 return <ViewInvoices />;
         }
@@ -230,27 +233,11 @@ const TopBar = () => {
                     {/* Petty Cash Dropdown */}
                     <div className="relative">
                         <button
-                            onClick={() => toggleDropdown('PettyCash')}
+                            onClick={() => setActiveTxn('Petty_Cash')}
                             className="px-4 py-2 font-bold bg-gray-700 hover:bg-gray-600 rounded"
                         >
                             Petty Cash
                         </button>
-                        {activeDropdown === 'PettyCash' && (
-                            <div className="absolute top-full left-0 mt-2 bg-white text-gray-800 shadow-lg rounded-lg w-40">
-                                <button
-                                    onClick={() => setActiveTxn('pettyCashPayment')}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                                >
-                                    Payment
-                                </button>
-                                <button
-                                    onClick={() => setActiveTxn('pettyCashView')}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                                >
-                                    View
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

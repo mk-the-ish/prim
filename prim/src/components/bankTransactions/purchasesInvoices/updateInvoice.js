@@ -1,21 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '../../../db/SupaBaseConfig';
 import { fetchUser } from '../../api/userApi';
 import {
-    FaUtensils,
-    FaBroom,
-    FaPencilAlt,
-    FaPhone,
-    FaChalkboardTeacher,
-    FaHandshake,
-    FaLightbulb,
-    FaCouch,
-    FaTools,
-    FaTree,
-    FaEllipsisH,
+    FaUtensils, FaBroom, FaPencilAlt, FaPhone, FaChalkboardTeacher,
+    FaHandshake, FaLightbulb, FaCouch, FaTools, FaTree, FaEllipsisH,
 } from 'react-icons/fa';
 
 const categoryIcons = {
@@ -32,7 +23,8 @@ const categoryIcons = {
     others: FaEllipsisH,
 };
 
-const CreateInvoice = () => {
+const UpdateInvoice = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         Supplier: '',
@@ -41,8 +33,8 @@ const CreateInvoice = () => {
         Account: '',
         Currency: '',
         Category: '',
-        Status: 'pending'
     });
+    const [loading, setLoading] = useState(true);
 
     const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
@@ -57,17 +49,48 @@ const CreateInvoice = () => {
         }
     });
 
+    useEffect(() => {
+        fetchInvoice();
+    }, [id]);
+
+    const fetchInvoice = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('invoices')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                setFormData(data);
+            }
+        } catch (error) {
+            console.error('Error fetching invoice:', error);
+            alert('Failed to fetch invoice details');
+            navigate('/transactions');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             const { error } = await supabase
                 .from('invoices')
-                .insert([formData]);
+                .update(formData)
+                .eq('id', id);
+
             if (error) throw error;
             navigate('/transactions');
+            alert('Invoice updated successfully');
         } catch (error) {
-            console.error('Error creating invoice:', error);
-            alert('Failed to create invoice');
+            console.error('Error updating invoice:', error);
+            alert('Failed to update invoice');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -80,6 +103,14 @@ const CreateInvoice = () => {
         return <div>Loading...</div>;
     }
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-100">
             <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
@@ -87,7 +118,7 @@ const CreateInvoice = () => {
                     <FaUserCircle className="text-lg" />
                     <span className="ml-4">{userData?.name}</span>
                 </Link>
-                <h1 className="text-2xl font-bold">Create Invoice</h1>
+                <h1 className="text-2xl font-bold">Update Invoice</h1>
                 <Link to="/transactions" className="text-white hover:text-gray-300">
                     Back to Invoices
                 </Link>
@@ -178,16 +209,26 @@ const CreateInvoice = () => {
                         </select>
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                    >
-                        Create Invoice
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            type="submit"
+                            className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                            disabled={loading}
+                        >
+                            {loading ? 'Updating...' : 'Update Invoice'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/transactions')}
+                            className="flex-1 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     );
 };
 
-export default CreateInvoice;
+export default UpdateInvoice;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../../../db/SupaBaseConfig';
+import ReportCard from '../../ui/reportCard';
+import Card from '../../ui/card';
 
 const MonthlyReport = () => {
     const [levyTxnIn, setLevyTxnIn] = useState({ usd: 0, zwg: 0 });
@@ -141,71 +143,52 @@ const MonthlyReport = () => {
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Monthly Transactions Report</h2>
-                <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="px-4 py-2 border rounded-lg"
-                />
-            </div>
+            <Card 
+                title="Monthly Transactions Report"
+                headerAction={
+                    <input
+                        type="month"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="px-4 py-2 border rounded-lg"
+                    />
+                }
+            >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <ReportCard
+                        title="Levy Txn In"
+                        data={{ usd: levyTxnIn.usd, zwg: levyTxnIn.zwg }}
+                    />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Levy Transaction In */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-300">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy Txn In</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${levyTxnIn.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${levyTxnIn.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
+                    <ReportCard
+                        title="Levy Txn Out"
+                        data={{ usd: levyTxnOut.usd, zwg: levyTxnOut.zwg }}
+                        variant="secondary"
+                    />
 
-                {/* Levy Transaction Out */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-400">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy Txn Out</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${levyTxnOut.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${levyTxnOut.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
+                    <ReportCard
+                        title="Tuition Txn In"
+                        data={{ usd: tuitionTxnIn.usd, zwg: tuitionTxnIn.zwg }}
+                    />
 
-                {/* Tuition Transaction In */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-500">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Tuition Txn In</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${tuitionTxnIn.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${tuitionTxnIn.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
+                    <ReportCard
+                        title="Tuition Txn Out"
+                        data={{ usd: tuitionTxnOut.usd, zwg: tuitionTxnOut.zwg }}
+                        variant="secondary"
+                    />
 
-                {/* Tuition Transaction Out */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-600">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Tuition Txn Out</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${tuitionTxnOut.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${tuitionTxnOut.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
+                    <ReportCard
+                        title="Total Levy"
+                        data={{ usd: Levy.usd, zwg: Levy.zwg }}
+                    />
 
-                {/* Total Levy */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-700">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${Levy.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${Levy.zwg.toFixed(2)}</p> 
-                    </div>
+                    <ReportCard
+                        title="Total Tuition"
+                        data={{ usd: Tuition.usd, zwg: Tuition.zwg }}
+                        variant="secondary"
+                    />
                 </div>
-
-                {/* Total Tuition */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-800">
-                    <h3 className="text-xl font-bold mb-4 text-blue-700">Tuition</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${Tuition.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${Tuition.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-            </div>
+            </Card>
         </div>
     );
 };

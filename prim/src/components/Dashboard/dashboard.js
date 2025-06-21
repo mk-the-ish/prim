@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { Pie, Bar } from 'react-chartjs-2';
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -25,6 +24,11 @@ import {
 } from '@heroicons/react/24/solid';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { fetchUser } from "../api/userApi";
+import SummaryCard from '../ui/summaryCard';
+import Loader from '../ui/loader';
+import TopBar from '../ui/topbar';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useToast } from '../../contexts/ToastContext';
 
 // Register Chart.js components
 ChartJS.register(
@@ -73,40 +77,105 @@ const defaultCashFlowData = {
     }
 };
 
+// Reusable Chart Container
+const ChartContainer = ({ title, children, className = '' }) => {
+    const { currentTheme } = useTheme();
+    return (
+        <div
+            className={`rounded-lg shadow-md p-6 ${className}`}
+            style={{
+                background: currentTheme.background.paper,
+                color: currentTheme.text.primary
+            }}
+        >
+            <h2 className="text-lg font-semibold mb-4">{title}</h2>
+            <div className="h-[300px] relative">{children}</div>
+        </div>
+    );
+};
+
+const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom'
+        }
+    }
+};
+
+const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+        y: {
+            beginAtZero: true,
+            ticks: {
+                callback: (value) => `$${value.toLocaleString()}`
+            }
+        }
+    },
+    plugins: {
+        legend: {
+            position: 'top'
+        },
+        tooltip: {
+            callbacks: {
+                label: (context) => `$${context.raw.toLocaleString()}`
+            }
+        }
+    }
+};
+
+const actions = [
+    { icon: '📄', name: 'Bulk Invoicing', path: '/bulk-invoicing' },
+    { icon: '🔄', name: 'New Term', path: '/new-term' },
+    { icon: '📅', name: 'New Year', path: '/new-year' }
+];
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const year = new Date().getFullYear();
+    const { currentTheme } = useTheme();
+    const { addToast } = useToast();
 
     const { data: userData, isLoading: userLoading } = useQuery({
-        queryKey: ['User'],
-        queryFn: fetchUser,
-        onError: () => navigate('/login'),
-        onSuccess: (data) => {
-            if (!data || data.role !== 'admin') {
+        queryKey: ['user'],
+        queryFn: () => fetchUser(['admin']),
+        retry: false,
+        onError: (error) => {
+            if (error.message.includes('Not authenticated')) {
+                addToast('You are not authenticated. Please login.', 'error');
+                navigate('/login');
+            } else if (error.message.includes('Unauthorized')) {
+                addToast('You are not authorized to view this page.', 'error');
                 navigate('/unauthorised');
+            } else {
+                addToast('Failed to fetch user data.', 'error');
             }
         }
     });
 
-    // Fetch dashboard statistics
     const { data: statistics = {}, isLoading: statsLoading } = useQuery({
         queryKey: ['dashboardStats'],
         queryFn: fetchDashboardStats,
-        enabled: !!userData?.role
+        enabled: !!userData?.role && userData.role === 'admin',
+        onError: () => addToast('Failed to fetch dashboard statistics.', 'error')
     });
 
-    // Fetch student chart data
     const { data: chartData = defaultChartData, isLoading: chartsLoading } = useQuery({
         queryKey: ['studentCharts'],
         queryFn: fetchStudentChartData,
-        enabled: !!userData?.role
+        enabled: !!userData?.role && userData.role === 'admin',
+        onError: () => addToast('Failed to fetch student chart data.', 'error')
     });
 
     const { data: cashFlowData = defaultCashFlowData, isLoading: cashFlowLoading } = useQuery({
         queryKey: ['cashFlow', year],
         queryFn: () => fetchCashFlowData(year),
-        enabled: !!userData?.role
+        enabled: !!userData?.role && userData.role === 'admin',
+        onError: () => addToast('Failed to fetch cash flow data.', 'error')
     });
 
     const loading = userLoading || statsLoading || chartsLoading || cashFlowLoading;
@@ -114,103 +183,86 @@ const AdminDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading dashboard data...</p>
-                </div>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background.default }}>
+                <Loader type="card" count={1} />
             </div>
         );
     }
-    
+
     return (
-        <div className="p-6 bg-gray-100 min-h-screen relative">
-            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-                <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
-                    <FaUserCircle className="text-lg" />
-                    <span className="ml-4">{userData?.name || 'Profile'}</span>
-                </Link>
-                <h1 className="text-2xl font-bold text-center flex-1">Dashboard</h1>
-            </div>
+        <div
+            className="p-6 min-h-screen relative"
+            style={{ background: currentTheme.background.default, color: currentTheme.text.primary }}
+        >
+            <TopBar title="Dashboard" userName={userData?.name} />
             <div className="p-2">
                 {/* Statistics Cards */}
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="rounded-lg shadow-md p-3 bg-blue-200">
-                        <div className="flex items-center">
-                            <UserGroupIcon className="h-8 w-8 text-blue-500 mr-3" />
-                            <div>
-                                <h3 className="text-xs font-semibold text-gray-600">Total Students</h3>
-                                <p className="text-xl font-bold text-gray-900">{statistics.totalStudents}</p>
-                            </div>
-                        </div>
-                    </div>
+                    <SummaryCard
+                        title="Total Students"
+                        icon={<UserGroupIcon className="text-blue-500" />}
+                        bgColor="bg-blue-200"
+                    >
+                        <p className="text-xl font-bold" style={{ color: currentTheme.text.primary }}>
+                            {statistics.totalStudents}
+                        </p>
+                    </SummaryCard>
 
-                    <div className="rounded-lg shadow-md p-3 bg-red-200">
-                        <div className="flex items-center">
-                            <ExclamationCircleIcon className="h-8 w-8 text-red-500 mr-3" />
-                            <div>
-                                <h3 className="text-xs font-semibold text-gray-600">Students Owing</h3>
-                                <p className="text-xl font-bold text-gray-900">{statistics.studentsOwing}</p>
-                            </div>
-                        </div>
-                    </div>
+                    <SummaryCard
+                        title="Students Owing"
+                        icon={<ExclamationCircleIcon className="text-red-500" />}
+                        bgColor="bg-red-200"
+                    >
+                        <p className="text-xl font-bold" style={{ color: currentTheme.text.primary }}>
+                            {statistics.studentsOwing}
+                        </p>
+                    </SummaryCard>
 
-                    <div className="rounded-lg shadow-md p-3 bg-green-200">
-                        <div>
-                            <div className="flex items-center mb-1">
-                                <CurrencyDollarIcon className="h-8 w-8 text-green-500 mr-3" />
-                                <h3 className="text-xs font-semibold text-gray-600">CBZ Net Revenue</h3>
-                            </div>
-                            <div className="space-y-0.5 ml-11">
-                                <p className="text-sm font-semibold">USD: ${statistics.cbzRevenueUsd?.toFixed(2) || '0.00'}</p>
-                                <p className="text-sm font-semibold">ZWG: ${statistics.cbzRevenueZwg?.toFixed(2) || '0.00'}</p>
-                            </div>
+                    <SummaryCard
+                        title="CBZ Net Revenue"
+                        icon={<CurrencyDollarIcon className="text-green-500" />}
+                        bgColor="bg-green-200"
+                    >
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-semibold" style={{ color: currentTheme.text.primary }}>
+                                USD: ${statistics.cbzRevenueUsd?.toFixed(2) || '0.00'}
+                            </p>
+                            <p className="text-sm font-semibold" style={{ color: currentTheme.text.primary }}>
+                                ZWG: ${statistics.cbzRevenueZwg?.toFixed(2) || '0.00'}
+                            </p>
                         </div>
-                    </div>
+                    </SummaryCard>
 
-                    <div className="rounded-lg shadow-md p-3 bg-purple-200">
-                        <div>
-                            <div className="flex items-center mb-1">
-                                <CurrencyDollarIcon className="h-8 w-8 text-purple-500 mr-3" />
-                                <h3 className="text-xs font-semibold text-gray-600">ZB Net Revenue</h3>
-                            </div>
-                            <div className="space-y-0.5 ml-11">
-                                <p className="text-sm font-semibold">USD: ${statistics.zbRevenueUsd?.toFixed(2) || '0.00'}</p>
-                                <p className="text-sm font-semibold">ZWG: ${statistics.zbRevenueZwg?.toFixed(2) || '0.00'}</p>
-                            </div>
+                    <SummaryCard
+                        title="ZB Net Revenue"
+                        icon={<CurrencyDollarIcon className="text-purple-500" />}
+                        bgColor="bg-purple-200"
+                    >
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-semibold" style={{ color: currentTheme.text.primary }}>
+                                USD: ${statistics.zbRevenueUsd?.toFixed(2) || '0.00'}
+                            </p>
+                            <p className="text-sm font-semibold" style={{ color: currentTheme.text.primary }}>
+                                ZWG: ${statistics.zbRevenueZwg?.toFixed(2) || '0.00'}
+                            </p>
                         </div>
-                    </div>
+                    </SummaryCard>
                 </div>
 
                 {/* Charts Grid */}
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Levy Cash Flow</h2>
-                        <div className="h-[300px] relative">
-                            <Bar data={cashFlowData.levyCashFlow} options={barChartOptions} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Gender Distribution</h2>
-                        <div className="h-[300px] relative">
-                            <Pie data={chartData.genderData} options={pieChartOptions} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Grade Distribution</h2>
-                        <div className="h-[300px] relative">
-                            <Pie data={chartData.gradeData} options={pieChartOptions} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Tuition Cash Flow</h2>
-                        <div className="h-[300px] relative">
-                            <Bar data={cashFlowData.tuitionCashFlow} options={barChartOptions} />
-                        </div>
-                    </div>
+                    <ChartContainer title="Levy Cash Flow">
+                        <Bar data={cashFlowData.levyCashFlow} options={barChartOptions} />
+                    </ChartContainer>
+                    <ChartContainer title="Gender Distribution">
+                        <Pie data={chartData.genderData} options={pieChartOptions} />
+                    </ChartContainer>
+                    <ChartContainer title="Grade Distribution">
+                        <Pie data={chartData.gradeData} options={pieChartOptions} />
+                    </ChartContainer>
+                    <ChartContainer title="Tuition Cash Flow">
+                        <Bar data={cashFlowData.tuitionCashFlow} options={barChartOptions} />
+                    </ChartContainer>
                 </div>
 
                 {/* Action Menu (Floating Button) */}
@@ -218,7 +270,13 @@ const AdminDashboard = () => {
                     <div className="fixed bottom-6 right-6 z-50">
                         <div className="relative">
                             {isMenuOpen && (
-                                <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-lg p-2 w-48">
+                                <div
+                                    className="absolute bottom-16 right-0 rounded-lg shadow-lg p-2 w-48"
+                                    style={{
+                                        background: currentTheme.background.paper,
+                                        color: currentTheme.text.primary
+                                    }}
+                                >
                                     {actions.map((action) => (
                                         <button
                                             key={action.name}
@@ -226,7 +284,11 @@ const AdminDashboard = () => {
                                                 navigate(action.path);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                                            className="flex items-center w-full px-4 py-2 hover:bg-gray-100 rounded"
+                                            style={{
+                                                background: 'none',
+                                                color: currentTheme.text.primary
+                                            }}
                                         >
                                             <span className="mr-2">{action.icon}</span>
                                             <span>{action.name}</span>
@@ -241,50 +303,11 @@ const AdminDashboard = () => {
                                 <PlusIcon className="h-6 w-6" />
                             </button>
                         </div>
-                    </div>)}
+                    </div>
+                )}
             </div>
         </div>
-
     );
 };
 
-    const pieChartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    };
-
-    const barChartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: (value) => `$${value.toLocaleString()}`
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                position: 'top'
-            },
-            tooltip: {
-                callbacks: {
-                    label: (context) => `$${context.raw.toLocaleString()}`
-                }
-            }
-        }
-    };
-
-    const actions = [
-        { icon: '📄', name: 'Bulk Invoicing', path: '/bulk-invoicing' },
-        { icon: '🔄', name: 'New Term', path: '/new-term' },
-        { icon: '📅', name: 'New Year', path: '/new-year' }
-    ];
-    
 export default AdminDashboard;
