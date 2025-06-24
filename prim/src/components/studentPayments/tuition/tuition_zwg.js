@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';
-import { fetchTuitionZWG } from '../../api/viewPaymentsApi';
+import { fetchFees } from '../../api/viewPaymentsApi';
 import { useNavigate } from 'react-router-dom';
-import DataTable from '../../../UIcomponents/dataTable';
+import DataTable from '../../ui/dataTable';
+import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,12 +18,14 @@ const TuitionZWG = () => {
             onError: () => navigate('/login')
         });
     
-        const { data: zwgTuition = [], isLoading: TuitionLoading } = useQuery({
-            queryKey: ['levyZWG'],
-            queryFn: fetchTuitionZWG,
+        const { data: Fees = [], isLoading: TuitionLoading } = useQuery({
+            queryKey: ['fees'],
+            queryFn: fetchFees,
             enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
         });
-    
+
+    const zwgTuition = Fees.filter(f => f.Currency === 'zwg' && f.Type === 'tuition');
+
     const loading = userLoading || TuitionLoading;
     
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
@@ -61,12 +64,12 @@ const TuitionZWG = () => {
         },
         {
             header: 'Payment Type',
-            render: (row) => row.form
+            render: (row) => row.Form
         }
     ];
 
     return (
-        <div className='container mx-auto p-6 bg-white rounded-lg shadow-md overflow-hidden'>
+        <Card title="ZWL Tuition Payments" className="p-4">
             <DataTable
                 columns={columns}
                 data={zwgTuition}
@@ -76,7 +79,7 @@ const TuitionZWG = () => {
                 itemsPerPage={ITEMS_PER_PAGE}
                 isLoading={loading}
             />
-        </div>
+        </Card>
     );
 };
 

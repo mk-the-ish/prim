@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../../../../db/SupaBaseConfig';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import Loader from '../../../ui/loader';
+import DataTable from '../../../ui/dataTable';
+import Card from '../../../ui/card';
 
 const TIVzwg = () => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { currentTheme } = useTheme();
 
     useEffect(() => {
         fetchTransactions();
+        // eslint-disable-next-line
     }, []);
 
     const fetchTransactions = async () => {
@@ -26,47 +32,33 @@ const TIVzwg = () => {
         }
     };
 
+    // Define columns for DataTable
+    const columns = [
+        { Header: 'ID', accessor: 'id' },
+        { Header: 'Created At', accessor: row => new Date(row.created_at).toLocaleString() },
+        { Header: 'Date', accessor: row => new Date(row.Date).toLocaleDateString() },
+        { Header: 'Description', accessor: 'Description' },
+        { Header: 'From', accessor: 'From' },
+        { Header: 'Amount', accessor: row => `$${Number(row.Amount).toFixed(2)}` }
+    ];
+
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 text-center">ZWG Tuition Revenue</h1>
+        <Card title="ZWD Tuition Revenue" className="p-6 min-h-screen">
             {loading ? (
-                <p className="text-center text-gray-500">Loading...</p>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white rounded-lg shadow-md">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th className="py-3 px-6 text-left">ID</th>
-                                <th className="py-3 px-6 text-left">Created At</th>
-                                <th className="py-3 px-6 text-left">Date</th>
-                                <th className="py-3 px-6 text-left">Description</th>
-                                <th className="py-3 px-6 text-left">From</th>
-                                <th className="py-3 px-6 text-left">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-600 text-sm font-light">
-                            {transactions.map((transaction) => (
-                                <tr
-                                    key={transaction.id}
-                                    className="border-b border-gray-200 hover:bg-gray-100"
-                                >
-                                    <td className="py-3 px-6 text-left">{transaction.id}</td>
-                                    <td className="py-3 px-6 text-left">
-                                        {new Date(transaction.created_at).toLocaleString()}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                        {new Date(transaction.Date).toLocaleDateString()}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">{transaction.Description}</td>
-                                    <td className="py-3 px-6 text-left">{transaction.From}</td>
-                                    <td className="py-3 px-6 text-left">${transaction.Amount.toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="flex justify-center items-center min-h-[200px]">
+                    <Loader type="card" />
                 </div>
+            ) : (
+                <DataTable
+                    columns={columns}
+                    data={transactions}
+                    currentPage={1}
+                    totalPages={1}
+                    itemsPerPage={transactions.length}
+                    onPageChange={() => {}}
+                />
             )}
-        </div>
+        </Card>
     );
 };
 

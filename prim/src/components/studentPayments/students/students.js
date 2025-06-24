@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';
 import { fetchStudents } from '../../api/studentsInfoApi';
-import DataTable from '../../../UIcomponents/dataTable';
+import DataTable from '../../ui/dataTable';
 import Button from '../../ui/button';
 import TopBar from '../../ui/topbar';
+import Card from '../../ui/card';
 import SkeletonLoader from '../../ui/loader';
 import { useToast } from '../../../contexts/ToastContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,6 +21,7 @@ const Students = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [studentsPerPage] = useState(10);
     const navigate = useNavigate();
+    const { currentTheme } = useTheme();
     const { addToast } = useToast();
 
     // Fetch user data
@@ -101,6 +104,7 @@ const Students = () => {
         }
     ];
 
+
     const filteredStudents = students.filter((student) =>
         `${student.FirstNames} ${student.Surname}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
         (gradeFilter ? student.Grade === gradeFilter : true) &&
@@ -108,11 +112,17 @@ const Students = () => {
         (genderFilter ? student.Gender === genderFilter : true)
     );
 
+
     const FilterDropdown = ({ value, onChange, options, label }) => (
         <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+            style={{
+                background: currentTheme.background?.paper,
+                color: currentTheme.text?.primary,
+                border: `1px solid ${currentTheme.divider || '#d1d5db'}`
+            }}
         >
             <option value="">{`All ${label}`}</option>
             {options.map(option => (
@@ -124,11 +134,12 @@ const Students = () => {
     );
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen relative">
+        <div className="p-6 bg-background min-h-screen relative">
             <TopBar title="Students" userName={userData?.name} />
-
-            <div className="container mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
+            <div className="container  mx-auto mt-10 p-6 rounded-lg shadow-md">
+                <Card title="Students Details" className="h-fit">
                 <div className="flex flex-wrap justify-between items-center mb-6">
+                    
                     <div className="flex space-x-4">
                         <FilterDropdown
                             value={gradeFilter}
@@ -179,7 +190,12 @@ const Students = () => {
                             placeholder="Search by Name"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="rounded-lg p-2 focus:outline-none focus:ring-2"
+                            style={{
+                                background: currentTheme.background?.paper,
+                                color: currentTheme.text?.primary,
+                                border: `1px solid ${currentTheme.divider || '#d1d5db'}`
+                            }}
                         />
                         <Button
                             onClick={() => navigate('/new-student')}
@@ -201,8 +217,9 @@ const Students = () => {
                         itemsPerPage={ITEMS_PER_PAGE}
                         isLoading={userLoading || studentsLoading}
                     />
+                    </div>
+                </Card>    
                 </div>
-            </div>
         </div>
     );
 };

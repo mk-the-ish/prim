@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchLevyUSD, fetchLevyZWG, fetchTuitionUSD, fetchTuitionZWG, fetchCommissionsIn, fetchCommissionsOut } from '../../api/viewPaymentsApi';
+import { fetchFees, fetchCommissions } from '../../api/viewPaymentsApi';
 import Card from '../../ui/card';
 import SummaryCard from '../../ui/summaryCard';
 import ReportCard from '../../ui/reportCard';
@@ -32,27 +32,19 @@ const DailyReport = () => {
 
             // Fetch all payments and commissions for today
             const [
-                allLevyUSD,
-                allLevyZWG,
-                allTuitionUSD,
-                allTuitionZWG,
-                allCommissionIn,
-                allCommissionOut
+                allFees,
+                allCommissions
             ] = await Promise.all([
-                fetchLevyUSD(),
-                fetchLevyZWG(),
-                fetchTuitionUSD(),
-                fetchTuitionZWG(),
-                fetchCommissionsIn(),
-                fetchCommissionsOut()
+                fetchFees(),
+                fetchCommissions()
             ]);
 
-            setLevyUsdTransactions(allLevyUSD.filter(txn => txn.Date === today && txn.Type === 'Levy' && txn.Currency === 'USD'));
-            setLevyZwgTransactions(allLevyZWG.filter(txn => txn.Date === today && txn.Type === 'Levy' && txn.Currency === 'ZWG'));
-            setTuitionUsdTransactions(allTuitionUSD.filter(txn => txn.Date === today && txn.Type === 'Tuition' && txn.Currency === 'USD'));
-            setTuitionZwgTransactions(allTuitionZWG.filter(txn => txn.Date === today && txn.Type === 'Tuition' && txn.Currency === 'ZWG'));
-            setCommissionIn(allCommissionIn.filter(txn => txn.Date === today));
-            setCommissionOut(allCommissionOut.filter(txn => txn.Date === today));
+            setLevyUsdTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'levy' && txn.Currency === 'usd'));
+            setLevyZwgTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'levy' && txn.Currency === 'zwg'));
+            setTuitionUsdTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'tuition' && txn.Currency === 'usd'));
+            setTuitionZwgTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'tuition' && txn.Currency === 'zwg'));
+            setCommissionIn(allCommissions.filter(txn => txn.Date === today && txn.flow === 'in'));
+            setCommissionOut(allCommissions.filter(txn => txn.Date === today && txn.flow === 'out'));
 
             setLoading(false);
         } catch (error) {
@@ -104,18 +96,16 @@ const DailyReport = () => {
     }
 
     return (
-        <div className="p-6" style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}>
-            <h2 className="text-3xl font-bold mb-6 text-center">Daily Transactions Report</h2>
-
+        <>
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                <SummaryCard title="Commission In" icon={null} bgColor="bg-blue-100">
+                <SummaryCard title="Commission In" icon={null} bgColor="bg-green-100">
                     <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${commissionInTotal.toFixed(2)}</p>
                 </SummaryCard>
                 <SummaryCard title="Commission Out" icon={null} bgColor="bg-red-100">
                     <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${commissionOutTotal.toFixed(2)}</p>
                 </SummaryCard>
-                <SummaryCard title="Levy USD" icon={null} bgColor="bg-green-100">
+                <SummaryCard title="Levy USD" icon={null} bgColor="bg-blue-100">
                     <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${levyUsdTotal.toFixed(2)}</p>
                 </SummaryCard>
                 <SummaryCard title="Levy ZWG" icon={null} bgColor="bg-yellow-100">
@@ -132,98 +122,93 @@ const DailyReport = () => {
             </div>
 
             {/* Detailed Tables */}
-            <div className="flex flex-col lg:flex-row gap-6">
-                <Card title="USD Transactions" className="w-full lg:w-1/2" variant="primary">
-                    <ReportCard
-                        title="Levy USD"
-                        data={{ USD: levyUsdTotal }}
-                        variant="default"
-                    />
-                    <div className="mt-4">
-                        <DataTable
-                            columns={columns}
-                            data={levyUsdTransactions}
-                            currentPage={1}
-                            totalPages={1}
-                            itemsPerPage={levyUsdTransactions.length}
-                            onPageChange={() => {}}
-                        />
-                    </div>
-                    <ReportCard
-                        title="Tuition USD"
-                        data={{ USD: tuitionUsdTotal }}
-                        variant="default"
-                    />
-                    <div className="mt-4">
-                        <DataTable
-                            columns={columns}
-                            data={tuitionUsdTransactions}
-                            currentPage={1}
-                            totalPages={1}
-                            itemsPerPage={tuitionUsdTransactions.length}
-                            onPageChange={() => {}}
-                        />
-                    </div>
-                </Card>
-
-                <Card title="ZWG Transactions" className="w-full lg:w-1/2" variant="secondary">
-                    <ReportCard
-                        title="Levy ZWG"
-                        data={{ ZWG: levyZwgTotal, USD: levyZwgUsdEq }}
-                        variant="secondary"
-                    />
-                    <div className="mt-4">
-                        <DataTable
-                            columns={columns}
-                            data={levyZwgTransactions}
-                            currentPage={1}
-                            totalPages={1}
-                            itemsPerPage={levyZwgTransactions.length}
-                            onPageChange={() => {}}
-                        />
-                    </div>
-                    <ReportCard
-                        title="Tuition ZWG"
-                        data={{ ZWG: tuitionZwgTotal, USD: tuitionZwgUsdEq }}
-                        variant="secondary"
-                    />
-                    <div className="mt-4">
-                        <DataTable
-                            columns={columns}
-                            data={tuitionZwgTransactions}
-                            currentPage={1}
-                            totalPages={1}
-                            itemsPerPage={tuitionZwgTransactions.length}
-                            onPageChange={() => {}}
-                        />
-                    </div>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <ReportCard
+                    title="Levy USD"
+                    data={{ USD: levyUsdTotal }}
+                    variant="default"
+                />
+                <ReportCard
+                    title="Levy ZWG"
+                    data={{ ZWG: levyZwgTotal, USD: levyZwgUsdEq }}
+                    variant="default"
+                />
+                <ReportCard
+                    title="Tuition USD"
+                    data={{ USD: tuitionUsdTotal }}
+                    variant="default"
+                />
+                <ReportCard
+                    title="Tuition ZWG"
+                    data={{ ZWG: tuitionZwgTotal, USD: tuitionZwgUsdEq }}
+                    variant="default"
+                />
             </div>
 
-            {/* Commissions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <Card title="Commission In" variant="primary">
+            {/* Data Tables, one per row */}
+            <div className="flex flex-col gap-8">
+                <Card title="Levy USD Transactions" className="w-full" variant="secondary">
+                    <DataTable
+                        columns={columns}
+                        data={levyUsdTransactions}
+                        currentPage={1}
+                        totalPages={1}
+                        itemsPerPage={levyUsdTransactions.length}
+                        onPageChange={() => { }}
+                    />
+                </Card>
+                <Card title="Levy ZWG Transactions" className="w-full" variant="secondary">
+                    <DataTable
+                        columns={columns}
+                        data={levyZwgTransactions}
+                        currentPage={1}
+                        totalPages={1}
+                        itemsPerPage={levyZwgTransactions.length}
+                        onPageChange={() => { }}
+                    />
+                </Card>
+                <Card title="Tuition USD Transactions" className="w-full" variant="secondary">
+                    <DataTable
+                        columns={columns}
+                        data={tuitionUsdTransactions}
+                        currentPage={1}
+                        totalPages={1}
+                        itemsPerPage={tuitionUsdTransactions.length}
+                        onPageChange={() => { }}
+                    />
+                </Card>
+                <Card title="Tuition ZWG Transactions" className="w-full" variant="secondary">
+                    <DataTable
+                        columns={columns}
+                        data={tuitionZwgTransactions}
+                        currentPage={1}
+                        totalPages={1}
+                        itemsPerPage={tuitionZwgTransactions.length}
+                        onPageChange={() => { }}
+                    />
+                </Card>
+                <Card title="Commission In" className='w-full' variant="secondary">
                     <DataTable
                         columns={commissionColumns}
                         data={commissionIn}
                         currentPage={1}
                         totalPages={1}
                         itemsPerPage={commissionIn.length}
-                        onPageChange={() => {}}
+                        onPageChange={() => { }}
                     />
                 </Card>
-                <Card title="Commission Out" variant="secondary">
+                <Card title="Commission Out" className='w-full' variant="secondary">
                     <DataTable
                         columns={commissionColumns}
                         data={commissionOut}
                         currentPage={1}
                         totalPages={1}
                         itemsPerPage={commissionOut.length}
-                        onPageChange={() => {}}
+                        onPageChange={() => { }}
                     />
                 </Card>
             </div>
-        </div>
+        </>
     );
 };
 

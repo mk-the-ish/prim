@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { fetchUser } from '../../api/userApi';
-import { fetchLevyUSD } from '../../api/viewPaymentsApi';
-import DataTable from '../../../UIcomponents/dataTable';
+import { fetchFees } from '../../api/viewPaymentsApi';
+import DataTable from '../../ui/dataTable';
+import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,11 +18,13 @@ const LevyUSD = () => {
         onError: () => navigate('/login')
     });
 
-    const { data: usdLevies = [], isLoading: leviesLoading } = useQuery({
-        queryKey: ['levyUSD'],
-        queryFn: fetchLevyUSD,
+    const { data: Fees = [], isLoading: leviesLoading } = useQuery({
+        queryKey: ['fees'],
+        queryFn: fetchFees,
         enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
     });
+
+    const usdLevies = Fees.filter(fee => fee.Currency === 'usd' && fee.Type === 'levy');
 
     const columns = [
         {
@@ -50,15 +53,16 @@ const LevyUSD = () => {
         },
         {
             header: 'Transaction Method',
-            accessor: 'transaction_type'
+            accessor: 'Type'
         },
         {
             header: 'Payment Type',
-            accessor: 'form'
+            accessor: 'Form'
         }
     ];
 
     return (
+        <Card title="USD Levies" className="mb-4">
         <DataTable
             columns={columns}
             data={usdLevies}
@@ -67,7 +71,8 @@ const LevyUSD = () => {
             onPageChange={setCurrentPage}
             itemsPerPage={ITEMS_PER_PAGE}
             isLoading={userLoading || leviesLoading}
-        />
+            />
+        </Card>
     );
 };
 

@@ -17,6 +17,7 @@ import {
     FaEllipsisH,
     FaPlus,
 } from 'react-icons/fa';
+import Card from '../../ui/card';
 
 const categoryIcons = {
     food: FaUtensils,
@@ -122,9 +123,9 @@ const ViewInvoices = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen relative">
-            <div className="mb-6 flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Invoices</h1>
+        <div className="p-6 min-h-screen relative">
+            <Card title={'View Invoices'} className="mb-6"
+                headerAction={
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -133,7 +134,8 @@ const ViewInvoices = () => {
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
                 </select>
-            </div>
+                }
+            >
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
 
@@ -203,6 +205,7 @@ const ViewInvoices = () => {
                     <FaPlus className="text-2xl" />
                 </button>
             )}
+            </Card>
         </div>
     );
 };

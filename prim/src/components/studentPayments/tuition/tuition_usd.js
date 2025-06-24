@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';
-import { fetchTuitionUSD } from '../../api/viewPaymentsApi';
+import { fetchFees } from '../../api/viewPaymentsApi';
 import { useNavigate } from 'react-router-dom';
-import DataTable from '../../../UIcomponents/dataTable';
+import DataTable from '../../../components/ui/dataTable';
+import Card from '../../../components/ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,11 +18,13 @@ const TuitionUSD = () => {
             onError: () => navigate('/login')
         });
 
-    const { data: usdTuitions = [], isLoading: tuitionsLoading } = useQuery({
-            queryKey: ['tuitionUSD'],
-            queryFn: fetchTuitionUSD,
+    const { data: Fees = [], isLoading: tuitionsLoading } = useQuery({
+            queryKey: ['fees'],
+            queryFn: fetchFees,
             enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
         });
+
+    const usdTuitions = Fees.filter(f => f.Currency === 'usd' && f.Type === 'tuition');
 
     const loading = userLoading || tuitionsLoading;
 
@@ -52,16 +55,16 @@ const TuitionUSD = () => {
         },
         {
             header: 'Transaction Method',
-            render: (row) => row.transaction_type
+            render: (row) => row.Type
         },
         {
             header: 'Payment Type',
-            render: (row) => row.form
+            render: (row) => row.Form
         }
     ];
 
     return (
-        <div className='container mx-auto p-6 bg-white rounded-lg shadow-md overflow-hidden'>
+        <Card title="USD Tuition Payments" className="p-4">
             <DataTable
                 columns={columns}
                 data={usdTuitions}
@@ -71,7 +74,7 @@ const TuitionUSD = () => {
                 itemsPerPage={ITEMS_PER_PAGE}
                 isLoading={loading}
             />
-        </div>
+        </Card>
     );
 };
 

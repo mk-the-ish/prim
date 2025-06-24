@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../db/SupaBaseConfig';
+import { fetchFees, fetchLevyUSD, fetchLevyZWG, fetchTuitionUSD, fetchTuitionZWG } from '../../api/viewPaymentsApi';
+import ReportCard from '../../ui/reportCard';
+import Card from '../../ui/card';
+import Loader from '../../ui/loader';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 const TermlyReport = () => {
     const [levyTxnIn, setLevyTxnIn] = useState({ usd: 0, zwg: 0 });
@@ -12,6 +17,9 @@ const TermlyReport = () => {
     const [selectedTerm, setSelectedTerm] = useState('1'); // Default to First Term
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
+    const { currentTheme } = useTheme();
+    const { addToast } = useToast();
+
     const terms = [
         { id: '1', label: 'First Term', startDate: '-01-01', endDate: '-04-30' },
         { id: '2', label: 'Second Term', startDate: '-05-01', endDate: '-08-31' },
@@ -22,6 +30,7 @@ const TermlyReport = () => {
         if (selectedTerm && selectedYear) {
             fetchTermlyTransactions();
         }
+        // eslint-disable-next-line
     }, [selectedTerm, selectedYear]);
 
     const fetchTermlyTransactions = async () => {
@@ -31,206 +40,166 @@ const TermlyReport = () => {
             const startDate = `${selectedYear}${term.startDate}`;
             const endDate = `${selectedYear}${term.endDate}`;
 
-            // Fetch Levy
-            const { data: levyUSD } = await supabase
-                .from('levy_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // Fetch all Fees for the term
+            const [fees] = await Promise.all([
+                fetchFees(),
+            ]);
+            // Both fetchLevyUSD and fetchLevyZWG fetch all Fees, so we can filter by Type and Currency
 
-            const { data: levyZWG } = await supabase
-                .from('levy_zwg')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // USD
+            const usdFees = fees.filter(
+                f =>
+                    f.Currency === 'USD' &&
+                    f.Date >= startDate &&
+                    f.Date <= endDate
+            );
+            // ZWG
+            const zwgFees = fees.filter(
+                f =>
+                    f.Currency === 'ZWG' &&
+                    f.Date >= startDate &&
+                    f.Date <= endDate
+            );
 
-            // Fetch Tuition
-            const { data: tuitionUSD } = await supabase
-                .from('tuition_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // Levy USD
+            const levyUSD = usdFees.filter(f => f.Type === 'Levy');
+            // Levy ZWG
+            const levyZWG = zwgFees.filter(f => f.Type === 'Levy');
+            // Tuition USD
+            const tuitionUSD = usdFees.filter(f => f.Type === 'Tuition');
+            // Tuition ZWG
+            const tuitionZWG = zwgFees.filter(f => f.Type === 'Tuition');
 
-            const { data: tuitionZWG } = await supabase
-                .from('tuition_zwg')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            // Fetch all transactions
-            const { data: levyInUsd } = await supabase
-                .from('levy_in_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: levyInZwg } = await supabase
-                .from('levy_in_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: levyOutUsd } = await supabase
-                .from('levy_out_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: levyOutZwg } = await supabase
-                .from('levy_out_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionInUsd } = await supabase
-                .from('tuition_in_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionInZwg } = await supabase
-                .from('tuition_in_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionOutUsd } = await supabase
-                .from('tuition_out_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionOutZwg } = await supabase
-                .from('tuition_out_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            // Calculate totals
+            // Totals
             setLevy({
-                usd: levyUSD?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyZWG?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: levyUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: levyZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setTuition({
-                usd: tuitionUSD?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionZWG?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: tuitionUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: tuitionZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
 
+            // Transactions In/Out
             setLevyTxnIn({
-                usd: levyInUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyInZwg?.reduce((sum, txn) => sum + (txn.USD_equivalent || 0), 0) || 0
+                usd: levyUSD
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: levyZWG
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setLevyTxnOut({
-                usd: levyOutUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyOutZwg?.reduce((sum, txn) => sum + (txn.USD_equivalent || 0), 0) || 0
+                usd: levyUSD
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
+                zwg: levyZWG
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
             });
-
             setTuitionTxnIn({
-                usd: tuitionInUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionInZwg?.reduce((sum, txn) => sum + (txn.USD_equivalent || 0), 0) || 0
+                usd: tuitionUSD
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: tuitionZWG
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setTuitionTxnOut({
-                usd: tuitionOutUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionOutZwg?.reduce((sum, txn) => sum + (txn.USD_equivalent || 0), 0) || 0
+                usd: tuitionUSD
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
+                zwg: tuitionZWG
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
             });
 
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching termly transactions:', error);
+            addToast('Error fetching termly transactions', 'error');
             setLoading(false);
         }
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]" style={{ background: currentTheme.background?.default }}>
+                <Loader type="card" count={1} />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Termly Transactions Report</h2>
-                <div className="flex gap-4">
-                    <select
-                        value={selectedTerm}
-                        onChange={(e) => setSelectedTerm(e.target.value)}
-                        className="px-4 py-2 border rounded-lg"
-                    >
-                        {terms.map(term => (
-                            <option key={term.id} value={term.id}>
-                                {term.label}
-                            </option>
-                        ))}
-                    </select>
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        className="px-4 py-2 border rounded-lg"
-                    >
-                        {Array.from({ length: 5 }, (_, i) => (
-                            <option key={i} value={new Date().getFullYear() - i}>
-                                {new Date().getFullYear() - i}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Levy Transaction In */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-300">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy Txn In</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${levyTxnIn.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${levyTxnIn.zwg.toFixed(2)}</p>
+            <Card
+                title="Termly Transactions Report"
+                headerAction={
+                    <div className="flex gap-4">
+                        <select
+                            value={selectedTerm}
+                            onChange={(e) => setSelectedTerm(e.target.value)}
+                            className="px-4 py-2 border rounded-lg"
+                            style={{
+                                background: currentTheme.background?.paper,
+                                color: currentTheme.text?.primary,
+                                borderColor: currentTheme.divider
+                            }}
+                        >
+                            {terms.map(term => (
+                                <option key={term.id} value={term.id}>
+                                    {term.label}
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="px-4 py-2 border rounded-lg"
+                            style={{
+                                background: currentTheme.background?.paper,
+                                color: currentTheme.text?.primary,
+                                borderColor: currentTheme.divider
+                            }}
+                        >
+                            {Array.from({ length: 5 }, (_, i) => (
+                                <option key={i} value={new Date().getFullYear() - i}>
+                                    {new Date().getFullYear() - i}
+                                </option>
+                            ))}
+                        </select>
                     </div>
+                }
+            >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <ReportCard
+                        title="Levy Txn In"
+                        data={{ usd: levyTxnIn.usd, zwg: levyTxnIn.zwg }}
+                    />
+                    <ReportCard
+                        title="Levy Txn Out"
+                        data={{ usd: levyTxnOut.usd, zwg: levyTxnOut.zwg }}
+                        variant="secondary"
+                    />
+                    <ReportCard
+                        title="Tuition Txn In"
+                        data={{ usd: tuitionTxnIn.usd, zwg: tuitionTxnIn.zwg }}
+                    />
+                    <ReportCard
+                        title="Tuition Txn Out"
+                        data={{ usd: tuitionTxnOut.usd, zwg: tuitionTxnOut.zwg }}
+                        variant="secondary"
+                    />
+                    <ReportCard
+                        title="Total Levy"
+                        data={{ usd: Levy.usd, zwg: Levy.zwg }}
+                    />
+                    <ReportCard
+                        title="Total Tuition"
+                        data={{ usd: Tuition.usd, zwg: Tuition.zwg }}
+                        variant="secondary"
+                    />
                 </div>
-
-                {/* Levy Transaction Out */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-400">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy Txn Out</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${levyTxnOut.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${levyTxnOut.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-
-                {/* Tuition Transaction In */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-500">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Tuition Txn In</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${tuitionTxnIn.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${tuitionTxnIn.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-
-                {/* Tuition Transaction Out */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-600">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Tuition Txn Out</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${tuitionTxnOut.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${tuitionTxnOut.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-
-                {/* Total Levy */}
-                <div className="bg-blue-100 p-6 rounded-lg shadow-lg border border-blue-700">
-                    <h3 className="text-xl font-bold mb-4 text-blue-600">Levy</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${Levy.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${Levy.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-
-                {/* Total Tuition */}
-                <div className="bg-blue-150 p-6 rounded-lg shadow-lg border border-blue-800">
-                    <h3 className="text-xl font-bold mb-4 text-blue-700">Tuition</h3>
-                    <div className="mt-4">
-                        <p className="text-lg">USD: ${Tuition.usd.toFixed(2)}</p>
-                        <p className="text-lg">ZWG: ${Tuition.zwg.toFixed(2)}</p>
-                    </div>
-                </div>
-            </div>
+            </Card>
         </div>
     );
 };

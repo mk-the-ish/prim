@@ -78,7 +78,7 @@ const NewStudent = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen">
             <TopBar title="Add New Student" userName={userName} />
             <div className="px-6">
                 <Form onSubmit={handleAddStudent} loading={submitting} title="Student Details">

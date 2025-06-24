@@ -96,8 +96,6 @@ const Report = () => {
                     </Button>
                 </div>
                 <div
-                    className="rounded-lg shadow p-6"
-                    style={{ background: currentTheme.background?.paper }}
                 >
                     {renderReport()}
                 </div>

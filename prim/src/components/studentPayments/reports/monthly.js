@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../../../db/SupaBaseConfig';
+import { fetchFees, fetchLevyUSD, fetchLevyZWG, fetchTuitionUSD, fetchTuitionZWG } from '../../api/viewPaymentsApi';
 import ReportCard from '../../ui/reportCard';
 import Card from '../../ui/card';
+import Loader from '../../ui/loader';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 const MonthlyReport = () => {
     const [levyTxnIn, setLevyTxnIn] = useState({ usd: 0, zwg: 0 });
@@ -12,138 +15,118 @@ const MonthlyReport = () => {
     const [Tuition, setTuition] = useState({ usd: 0, zwg: 0 });
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
+    const { currentTheme } = useTheme();
+    const { addToast } = useToast();
 
     useEffect(() => {
         fetchMonthlyTransactions();
+        // eslint-disable-next-line
     }, [selectedMonth]);
 
     const fetchMonthlyTransactions = async () => {
         setLoading(true);
         try {
             const startDate = `${selectedMonth}-01`;
-            const endDate = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).toISOString().split('T')[0];
+            const endDate = new Date(
+                selectedMonth.split('-')[0],
+                selectedMonth.split('-')[1],
+                0
+            )
+                .toISOString()
+                .split('T')[0];
 
-            //Fetch Levy
-            const { data: levyUSD } = await supabase
-                .from('levy_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-            
-            const { data: levyZWG } = await supabase
-                .from('levy_zwg')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-            
-            // Fetch Tuition
-            const { data: tuitionUSD } = await supabase
-                .from('tuition_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-            
-            const { data: tuitionZWG } = await supabase
-                .from('tuition_zwg')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // Fetch all Fees for the month
+            const [fees] = await Promise.all([
+                fetchFees(),
+            ]);
+            // Both fetchLevyUSD and fetchLevyZWG fetch all Fees, so we can filter by Type and Currency
 
-            // Fetch Levy Transactions In
-            const { data: levyInUsd } = await supabase
-                .from('levy_in_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // USD
+            const usdFees = fees.filter(
+                f =>
+                    f.Currency === 'USD' &&
+                    f.Date >= startDate &&
+                    f.Date <= endDate
+            );
+            // ZWG
+            const zwgFees = fees.filter(
+                f =>
+                    f.Currency === 'ZWG' &&
+                    f.Date >= startDate &&
+                    f.Date <= endDate
+            );
 
-            const { data: levyInZwg } = await supabase
-                .from('levy_in_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
+            // Levy USD
+            const levyUSD = usdFees.filter(f => f.Type === 'Levy');
+            // Levy ZWG
+            const levyZWG = zwgFees.filter(f => f.Type === 'Levy');
+            // Tuition USD
+            const tuitionUSD = usdFees.filter(f => f.Type === 'Tuition');
+            // Tuition ZWG
+            const tuitionZWG = zwgFees.filter(f => f.Type === 'Tuition');
 
-            // Fetch Levy Transactions Out
-            const { data: levyOutUsd } = await supabase
-                .from('levy_out_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: levyOutZwg } = await supabase
-                .from('levy_out_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            // Fetch Tuition Transactions In
-            const { data: tuitionInUsd } = await supabase
-                .from('tuition_in_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionInZwg } = await supabase
-                .from('tuition_in_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            // Fetch Tuition Transactions Out
-            const { data: tuitionOutUsd } = await supabase
-                .from('tuition_out_txn_usd')
-                .select('Amount')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            const { data: tuitionOutZwg } = await supabase
-                .from('tuition_out_txn_zwg')
-                .select('Amount, USD_equivalent')
-                .gte('Date', startDate)
-                .lte('Date', endDate);
-
-            // Calculate totals
+            // Totals
             setLevy({
-                usd: levyUSD?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyZWG?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: levyUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: levyZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setTuition({
-                usd: tuitionUSD?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionZWG?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: tuitionUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: tuitionZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
 
+            // Transactions In/Out
             setLevyTxnIn({
-                usd: levyInUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyInZwg?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: levyUSD
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: levyZWG
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setLevyTxnOut({
-                usd: levyOutUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: levyOutZwg?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: levyUSD
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
+                zwg: levyZWG
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
             });
-
             setTuitionTxnIn({
-                usd: tuitionInUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionInZwg?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: tuitionUSD
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0),
+                zwg: tuitionZWG
+                    .filter(f => f.Amount > 0)
+                    .reduce((sum, txn) => sum + (txn.Amount || 0), 0)
             });
-
             setTuitionTxnOut({
-                usd: tuitionOutUsd?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0,
-                zwg: tuitionOutZwg?.reduce((sum, txn) => sum + (txn.Amount || 0), 0) || 0
+                usd: tuitionUSD
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
+                zwg: tuitionZWG
+                    .filter(f => f.Amount < 0)
+                    .reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
             });
 
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching monthly transactions:', error);
+            addToast('Error fetching monthly transactions', 'error');
             setLoading(false);
         }
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]" style={{ background: currentTheme.background?.default }}>
+                <Loader type="card" count={1} />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
-            <Card 
+            <Card
                 title="Monthly Transactions Report"
                 headerAction={
                     <input
@@ -151,6 +134,11 @@ const MonthlyReport = () => {
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
                         className="px-4 py-2 border rounded-lg"
+                        style={{
+                            background: currentTheme.background?.paper,
+                            color: currentTheme.text?.primary,
+                            borderColor: currentTheme.divider
+                        }}
                     />
                 }
             >
@@ -159,29 +147,24 @@ const MonthlyReport = () => {
                         title="Levy Txn In"
                         data={{ usd: levyTxnIn.usd, zwg: levyTxnIn.zwg }}
                     />
-
                     <ReportCard
                         title="Levy Txn Out"
                         data={{ usd: levyTxnOut.usd, zwg: levyTxnOut.zwg }}
                         variant="secondary"
                     />
-
                     <ReportCard
                         title="Tuition Txn In"
                         data={{ usd: tuitionTxnIn.usd, zwg: tuitionTxnIn.zwg }}
                     />
-
                     <ReportCard
                         title="Tuition Txn Out"
                         data={{ usd: tuitionTxnOut.usd, zwg: tuitionTxnOut.zwg }}
                         variant="secondary"
                     />
-
                     <ReportCard
                         title="Total Levy"
                         data={{ usd: Levy.usd, zwg: Levy.zwg }}
                     />
-
                     <ReportCard
                         title="Total Tuition"
                         data={{ usd: Tuition.usd, zwg: Tuition.zwg }}

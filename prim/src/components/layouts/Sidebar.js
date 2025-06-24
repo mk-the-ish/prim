@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaUserGraduate, FaMoneyBill, FaDonate, FaChartBar, FaFileInvoiceDollar,
-  FaWallet, FaCreditCard, FaPager, FaMoon, FaSun
+  FaWallet, FaCreditCard, FaPager
 } from 'react-icons/fa';
-import Button from '../ui/button';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const navLinks = [
@@ -21,9 +20,46 @@ const bottomLinks = [
   { to: '/financials', icon: <FaFileInvoiceDollar />, label: 'Financials' },
 ];
 
+// Sidebar-specific button (not the main Button component)
+const SidebarButton = ({
+  active,
+  onClick,
+  children,
+  className = '',
+  expanded,
+  ...props
+}) => {
+  const { currentTheme } = useTheme();
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center w-full justify-start text-sm px-2 py-2 rounded
+        transition-colors duration-200
+        ${expanded ? 'pl-2' : 'justify-center'}
+        ${active ? 'font-bold ring-2 ring-offset-2' : ''}
+        ${className}
+      `}
+      style={{
+        background: active
+          ? currentTheme.primary?.main || '#2563eb'
+          : currentTheme.background?.sidebar || '#1f2937',
+        color: active
+          ? currentTheme.primary?.contrastText || '#fff'
+          : currentTheme.text?.sidebar || '#fff',
+        border: 'none',
+        outline: 'none'
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
 const Sidebar = ({ children }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const { themeName, toggleTheme } = useTheme();
+  const { currentTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,33 +69,38 @@ const Sidebar = ({ children }) => {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <div
-        className={`bg-gray-800 text-white ${isSidebarExpanded ? 'w-64' : 'w-20'
-          } transition-all duration-300 flex flex-col justify-between fixed h-full`}
+        className={`transition-all duration-300 flex flex-col justify-between fixed h-full`}
+        style={{
+          background: currentTheme.background?.sidebar || '#1f2937',
+          color: currentTheme.text?.sidebar || '#fff',
+          width: isSidebarExpanded ? 256 : 80 // 64 or 20 in tailwind
+        }}
       >
         {/* Top Section */}
         <div>
           <button
             onClick={toggleSidebar}
-            className="w-full p-4 focus:outline-none hover:bg-gray-700 justify-center items-center"
+            className="w-full p-4 focus:outline-none hover:opacity-80 justify-center items-center"
+            style={{ background: 'transparent' }}
           >
             <img
               src={`/images/${isSidebarExpanded ? 'prim.png' : 'favicon.png'}`}
               alt={isSidebarExpanded ? 'Retract' : 'Expand'}
-              className="h-8 w-auto  transition-all duration-300"
+              className="h-8 w-auto transition-all duration-300"
             />
           </button>
           <nav className="mt-4">
             <ul>
               {navLinks.map(({ to, icon, label }) => (
                 <li key={to} className="flex items-center p-2">
-                  <Button
+                  <SidebarButton
                     onClick={() => navigate(to)}
-                    variant={location.pathname === to ? 'primary' : 'secondary'}
-                    className={`flex items-center w-full justify-start ${isSidebarExpanded ? 'pl-2' : 'justify-center'} ${location.pathname === to ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                    active={location.pathname === to}
+                    expanded={isSidebarExpanded}
                   >
                     <span className="text-xl">{icon}</span>
                     {isSidebarExpanded && <span className="ml-4">{label}</span>}
-                  </Button>
+                  </SidebarButton>
                 </li>
               ))}
             </ul>
@@ -72,33 +113,16 @@ const Sidebar = ({ children }) => {
             <ul>
               {bottomLinks.map(({ to, icon, label }) => (
                 <li key={to} className="flex items-center p-2">
-                  <Button
+                  <SidebarButton
                     onClick={() => navigate(to)}
-                    variant={location.pathname === to ? 'primary' : 'secondary'}
-                    className={`flex items-center w-full justify-start text-sm ${isSidebarExpanded ? 'pl-2' : 'justify-center'} ${location.pathname === to ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                    active={location.pathname === to}
+                    expanded={isSidebarExpanded}
                   >
                     <span className="text-lg">{icon}</span>
                     {isSidebarExpanded && <span className="ml-4">{label}</span>}
-                  </Button>
+                  </SidebarButton>
                 </li>
               ))}
-              {/* Theme Toggle Button */}
-              <li className="flex items-center p-2 mt-2">
-                <Button
-                  onClick={toggleTheme}
-                  variant="secondary"
-                  className={`flex items-center w-full justify-start text-sm ${isSidebarExpanded ? 'pl-2' : 'justify-center'}`}
-                >
-                  <span className="text-lg">
-                    {themeName === 'light' ? <FaMoon /> : <FaSun />}
-                  </span>
-                  {isSidebarExpanded && (
-                    <span className="ml-4">
-                      {themeName === 'light' ? 'Dark Mode' : 'Light Mode'}
-                    </span>
-                  )}
-                </Button>
-              </li>
             </ul>
           </nav>
         </div>
@@ -106,13 +130,16 @@ const Sidebar = ({ children }) => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 bg-gray-100 p-6 transition-all duration-300 ${isSidebarExpanded ? 'ml-64' : 'ml-20'
-          } overflow-y-auto`}
+        className={`flex-1 p-6 transition-all duration-300 overflow-y-auto`}
+        style={{
+          background: currentTheme.background?.default || '#f3f4f6',
+          marginLeft: isSidebarExpanded ? 256 : 80
+        }}
       >
         {children}
       </div>
     </div>
   );
-}
+};
 
 export default Sidebar;

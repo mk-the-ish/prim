@@ -1,36 +1,60 @@
 import React from 'react';
 import Button from './button';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium mb-1 text-left">{label}</label>
-        <input
-            {...props}
-            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-    </div>
-);
+const FormInput = ({ label, ...props }) => {
+    const { currentTheme } = useTheme();
+    return (
+        <div>
+            <label className="block text-sm font-medium mb-1 text-left">{label}</label>
+            <input
+                {...props}
+                className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                style={{
+                    border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                    color: currentTheme.text?.primary,
+                    background: currentTheme.background?.paper
+                }}
+            />
+        </div>
+    );
+};
 
-const FormSelect = ({ label, options, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium mb-1 text-left">{label}</label>
-        <select
-            {...props}
-            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-            <option value="">Select {label}</option>
-            {options.map(option => (
-                <option key={option.value || option} value={option.value || option}>
-                    {option.label || option}
-                </option>
-            ))}
-        </select>
-    </div>
-);
+const FormSelect = ({ label, options, ...props }) => {
+    const { currentTheme } = useTheme();
+    return (
+        <div>
+            <label className="block text-sm font-medium mb-1 text-left">{label}</label>
+            <select
+                {...props}
+                className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                style={{
+                    border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                    color: currentTheme.text?.primary,
+                    background: currentTheme.background?.paper
+                }}
+            >
+                <option value="">Select {label}</option>
+                {options.map(option => (
+                    <option key={option.value || option} value={option.value || option}>
+                        {option.label || option}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+};
 
 const Form = ({ onSubmit, loading, children, title }) => {
+    const { currentTheme } = useTheme();
     return (
-        <div className="max-w-lg mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
+        <div
+            className="max-w-lg mx-auto mt-10 p-6 rounded-lg shadow-md"
+            style={{
+                background: currentTheme.background?.paper,
+                color: currentTheme.text?.primary
+            }}
+        >
             {title && <h2 className="text-2xl font-bold text-center mb-6">{title}</h2>}
             <form onSubmit={onSubmit} className="space-y-4">
                 {children}

@@ -1,46 +1,27 @@
 import React, { useState } from 'react';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import TIVusd from './viewUSD.js';
 import TIVzwg from './viewZWG.js';
+import ContextSwitch from '../../../ui/contextSwitch';
 
 function TIView() {
-    const [activeView, setActiveView] = useState('USD'); // Initial state
-
-    const handleViewChange = (ViewType) => {
-        setActiveView(ViewType);
-    };
+    const [activeView, setActiveView] = useState('USD');
+    const { currentTheme } = useTheme();
 
     return (
-        <div className="min-h-screen">
-
-                {/* Content Area */}
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                        <button
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: activeView === 'USD' ? 'lightblue' : 'lightgray',
-                            }}
-                            onClick={() => handleViewChange('USD')}
-                        >
-                            USD
-                        </button>
-                        <button
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: activeView === 'ZWG' ? 'lightblue' : 'lightgray',
-                            }}
-                            onClick={() => handleViewChange('ZWG')}
-                        >
-                            ZWG
-                        </button>
-                    </div>
-                    {activeView === 'USD' && <TIVusd />}
-                    {activeView === 'ZWG' && <TIVzwg />}
-
-                </div>
+        <div className="min-h-screen" style={{ background: currentTheme.background?.default }}>
+            <div className="flex justify-center mb-8">
+                <ContextSwitch
+                    activeTab={activeView}
+                    onTabChange={setActiveView}
+                    tabs={['USD', 'ZWG']}
+                />
             </div>
-        
-            
+            <div className="w-full max-w-2xl mx-auto">
+                {activeView === 'USD' && <TIVusd />}
+                {activeView === 'ZWG' && <TIVzwg />}
+            </div>
+        </div>
     );
 }
 

@@ -104,7 +104,7 @@ const StudentUpdate = () => {
             style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}
         >
             <TopBar title="Update Student Details" userName={userData?.name} />
-            <div className="pt-5 px-6">
+            <div className="px-6">
                 <div className="container mx-auto mt-10">
                     <Form onSubmit={handleUpdateStudent} loading={submitting} title="Edit Student">
                         <Form.Input

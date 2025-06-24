@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';
-import { fetchLevyZWG } from '../../api/viewPaymentsApi';
+import { fetchFees } from '../../api/viewPaymentsApi';
 import { useNavigate } from 'react-router-dom';
-import DataTable from '../../../UIcomponents/dataTable';
+import DataTable from '../../ui/dataTable';
+import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,11 +18,13 @@ const LevyZWG = () => {
         onError: () => navigate('/login')
     });
 
-    const { data: zwgLevies = [], isLoading: leviesLoading } = useQuery({
-        queryKey: ['levyZWG'],
-        queryFn: fetchLevyZWG,
+    const { data: Fees = [], isLoading: leviesLoading } = useQuery({
+        queryKey: ['fees'],
+        queryFn: fetchFees,
         enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
     });
+
+    const zwgLevies = Fees.filter(fee => fee.Currency === 'zwg' && fee.Type === 'levy');
 
     const loading = userLoading || leviesLoading;
 
@@ -52,15 +55,16 @@ const LevyZWG = () => {
         },
         {
             header: 'Transaction Method',
-            render: (row) => row.transaction_type
+            render: (row) => row.Type
         },
         {
             header: 'Payment Type',
-            render: (row) => row.form
+            render: (row) => row.Form
         }
     ];
 
     return (
+        <Card title="ZWL Levies" className="mb-4">
         <DataTable
             columns={columns}
             data={zwgLevies}
@@ -69,7 +73,8 @@ const LevyZWG = () => {
             onPageChange={setCurrentPage}
             itemsPerPage={ITEMS_PER_PAGE}
             isLoading={loading}
-        />
+            />
+        </Card>
     );
 };
 

@@ -1,23 +1,35 @@
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const Card = ({ 
-    title, 
-    children, 
+const Card = ({
+    title,
+    children,
     className = '',
     headerAction,
     variant = 'default'
 }) => {
+    const { currentTheme } = useTheme();
+
+    // Use theme colors for background
     const variants = {
-        default: 'bg-white',
-        secondary: 'bg-blue-50',
-        primary: 'bg-gray-50'
+        default: currentTheme.background?.paper || 'bg-white',
+        secondary: currentTheme.background?.secondary || 'bg-blue-50',
+        primary: currentTheme.background?.primary || 'bg-gray-50'
     };
 
     return (
-        <div className={`rounded-lg shadow-md overflow-hidden ${variants[variant]} ${className}`}>
+        <div
+            className={`rounded-lg shadow-md overflow-hidden ${className}`}
+            style={{ background: variants[variant] }}
+        >
             {title && (
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-700">{title}</h3>
+                <div className="px-6 py-4 flex justify-between items-center">
+                    <h3
+                        className="text-xl font-bold"
+                        style={{ color: currentTheme.text?.primary }}
+                    >
+                        {title}
+                    </h3>
                     {headerAction && <div>{headerAction}</div>}
                 </div>
             )}

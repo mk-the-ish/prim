@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import supabase from '../../../../db/SupaBaseConfig';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
 const TIzwg = () => {
     const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const TIzwg = () => {
         Amount: '',
     });
     const [loading, setLoading] = useState(false);
+    const { currentTheme } = useTheme();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -33,7 +35,10 @@ const TIzwg = () => {
     };
 
     return (
-        <div className="max-w-lg mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
+        <div
+            className="max-w-lg mx-auto p-6 rounded-lg shadow-md"
+            style={{ background: currentTheme.background?.paper, color: currentTheme.text?.primary }}
+        >
             <h2 className="text-2xl font-bold text-center mb-6">Add ZWG Tuition Revenue</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -43,7 +48,12 @@ const TIzwg = () => {
                         name="Date"
                         value={formData.Date}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                        style={{
+                            border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                            background: currentTheme.background?.default,
+                            color: currentTheme.text?.primary
+                        }}
                         required
                     />
                 </div>
@@ -54,7 +64,12 @@ const TIzwg = () => {
                         name="Description"
                         value={formData.Description}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                        style={{
+                            border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                            background: currentTheme.background?.default,
+                            color: currentTheme.text?.primary
+                        }}
                         required
                     />
                 </div>
@@ -65,7 +80,12 @@ const TIzwg = () => {
                         name="From"
                         value={formData.From}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                        style={{
+                            border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                            background: currentTheme.background?.default,
+                            color: currentTheme.text?.primary
+                        }}
                         required
                     />
                 </div>
@@ -76,14 +96,22 @@ const TIzwg = () => {
                         name="Amount"
                         value={formData.Amount}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg p-2 focus:outline-none focus:ring-2"
+                        style={{
+                            border: `1px solid ${currentTheme.divider || '#d1d5db'}`,
+                            background: currentTheme.background?.default,
+                            color: currentTheme.text?.primary
+                        }}
                         required
                     />
                 </div>
                 <button
                     type="submit"
-                    className={`w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                    className={`w-full font-bold py-2 px-4 rounded-lg transition-colors duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{
+                        background: currentTheme.primary?.main || '#2563eb',
+                        color: currentTheme.primary?.contrastText || '#fff'
+                    }}
                     disabled={loading}
                 >
                     {loading ? 'Adding...' : 'Add Transaction'}

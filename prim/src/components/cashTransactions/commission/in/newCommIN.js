@@ -2,37 +2,38 @@ import React, { useState } from 'react';
 import supabase from '../../../SupaBaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { fetchUser } from '../../api';
-import { FaUserCircle } from 'react-icons/fa';
+import { fetchUser } from '../../api/userApi';
+import TopBar from '../../../../components/ui/topbar';
+import Loader from '../../../../components/ui/loader';
+import Form from '../../../../components/ui/form';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import { useToast } from '../../../../contexts/ToastContext';
 
 const NewCommIN = () => {
     const [commission, setCommission] = useState({
         Date: '',
-        From: '',
+        Payee: '',
         Amount: '',
         Description: '',
     });
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const { currentTheme } = useTheme();
+    const { addToast } = useToast();
 
     const { data: userData, isLoading: userLoading } = useQuery({
-                queryKey: ['user'],
-                queryFn: fetchUser,
-                onError: () => navigate('/login')
+        queryKey: ['user'],
+        queryFn: fetchUser,
+        onError: () => navigate('/login')
     });
-    
+
     if (loading || userLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading Payment Form...</p>
-                </div>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background?.default }}>
+                <Loader type="card" count={1} />
             </div>
         );
     }
-
 
     const handleInputChange = (e) => {
         setCommission({ ...commission, [e.target.name]: e.target.value });
@@ -40,92 +41,70 @@ const NewCommIN = () => {
 
     const handleAddCommission = async (e) => {
         e.preventDefault();
-        const { error } = await supabase.from('commissions_in').insert([commission]);
-
-        if (error) {
-            console.error('Error adding commission:', error);
-        } else {
-            navigate('/commissions'); // Redirect to commIN after successful submission
+        setLoading(true);
+        try {
+            const { error } = await supabase.from('Commissions').insert([commission]);
+            if (error) throw error;
+            addToast('Commission In added successfully!', 'success');
+            navigate('/commission');
+        } catch (error) {
+            addToast('Error adding commission.', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-                            {/* Fixed Header */}
-                            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-                                <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
-                                    <FaUserCircle className="text-lg" />
-                                    <span className="ml-4">{userData?.name || 'Profile'}</span>
-                                </Link>
-                                <h1 className="text-2xl font-bold text-center flex-1">Add New Commission In</h1>
-                                <Link
-                                    to={`/commission`}
-                                    className="text-white hover:text-gray-300 transition-colors duration-200"
-                                >
-                                    Back to Commissions In
-                                </Link>
-                            </div>
-                
-                            {/* Main Content */}
-                            <div className="px-6"></div>
-        <div className="max-w-3xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-            <form onSubmit={handleAddCommission} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Date</label>
-                    <input
+        <div className="min-h-screen" style={{ background: currentTheme.background?.default }}>
+            <TopBar title="Add New Commission In" userName={userData?.name} />
+            <div className="max-w-3xl mx-auto mt-10 p-6 rounded-lg shadow-md" style={{ background: currentTheme.background?.paper }}>
+                <Form onSubmit={handleAddCommission} loading={loading}>
+                    <Form.Input
+                        label="Date"
                         type="date"
                         name="Date"
                         value={commission.Date}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">From</label>
-                    <input
+                    <Form.Input
+                        label="Payee"
                         type="text"
-                        name="From"
-                        placeholder="From"
-                        value={commission.From}
+                        name="Payee"
+                        placeholder="Payee"
+                        value={commission.Payee}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Amount</label>
-                    <input
+                    <Form.Input
+                        label="Amount"
                         type="number"
                         name="Amount"
                         placeholder="Amount"
                         value={commission.Amount}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-left">Description</label>
-                    <textarea
-                        name="Description"
-                        placeholder="Description"
-                        value={commission.Description}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows="3"
-                        required
-                    ></textarea>
-                </div>
-                <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                    Add Commission
-                </button>
-            </form>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-left">Description</label>
+                        <textarea
+                            name="Description"
+                            placeholder="Description"
+                            value={commission.Description}
+                            onChange={handleInputChange}
+                            className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2"
+                            style={{
+                                borderColor: currentTheme.divider,
+                                color: currentTheme.text.primary,
+                                background: currentTheme.background.paper
+                            }}
+                            rows="3"
+                            required
+                        ></textarea>
+                    </div>
+                </Form>
             </div>
-            </div>
+        </div>
     );
 };
 

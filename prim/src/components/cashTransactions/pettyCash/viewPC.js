@@ -2,9 +2,14 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { fetchPettyCashTransactions, fetchCBZPettyCashTransactions } from '../../api/pettyCashApi';
+import { useTheme } from '../../../contexts/ThemeContext';
+import Button from '../../ui/button';
+import Card from '../../ui/card';
 
 const ViewPC = () => {
     const navigate = useNavigate();
+    const { currentTheme } = useTheme();
+
     const { data: creditTransactions = [] } = useQuery({
         queryKey: ['pettyCashTransactions'],
         queryFn: fetchPettyCashTransactions
@@ -19,74 +24,78 @@ const ViewPC = () => {
     const balance = totalDebit - totalCredit;
 
     return (
-        <div className="p-6">
+        <div className="p-6" style={{ background: currentTheme.background?.default, minHeight: '100vh' }}>
             <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold">Petty Cash Balance</h2>
-                <p className="text-xl font-semibold">${balance.toFixed(2)}</p>
+                <h2 className="text-2xl font-bold" style={{ color: currentTheme.primary?.main }}>Petty Cash Balance</h2>
+                <p className="text-xl font-semibold" style={{ color: currentTheme.text?.primary }}>${balance.toFixed(2)}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Debit Side */}
-                <div>
-                    <h3 className="text-xl font-bold mb-4">Debit (Money In)</h3>
-                    <table className="min-w-full bg-white border">
-                        <thead>
-                            <tr>
-                                <th className="border p-2">Date</th>
-                                <th className="border p-2">Description</th>
-                                <th className="border p-2">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {debitTransactions.map((tx, index) => (
-                                <tr key={index}>
-                                    <td className="border p-2">{tx.Date}</td>
-                                    <td className="border p-2">{tx.Description}</td>
-                                    <td className="border p-2">${tx.Amount}</td>
+                <Card title="Debit (Money In)" variant="secondary">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full" style={{ background: currentTheme.background?.paper }}>
+                            <thead>
+                                <tr>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Date</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Description</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Amount</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button 
+                            </thead>
+                            <tbody>
+                                {debitTransactions.map((tx, index) => (
+                                    <tr key={index}>
+                                        <td className="border p-2">{tx.Date}</td>
+                                        <td className="border p-2">{tx.Description}</td>
+                                        <td className="border p-2">${Number(tx.Amount).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <Button
                         onClick={() => navigate('/transactions/levyOut')}
-                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+                        variant="primary"
+                        className="mt-4"
                     >
                         Withdraw From CBZ
-                    </button>
-                </div>
+                    </Button>
+                </Card>
 
                 {/* Credit Side */}
-                <div>
-                    <h3 className="text-xl font-bold mb-4">Credit (Money Out)</h3>
-                    <table className="min-w-full bg-white border">
-                        <thead>
-                            <tr>
-                                <th className="border p-2">Date</th>
-                                <th className="border p-2">Recipient</th>
-                                <th className="border p-2">Description</th>
-                                <th className="border p-2">Category</th>
-                                <th className="border p-2">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {creditTransactions.map((tx, index) => (
-                                <tr key={index}>
-                                    <td className="border p-2">{tx.date}</td>
-                                    <td className="border p-2">{tx.Receipient}</td>
-                                    <td className="border p-2">{tx.Description}</td>
-                                    <td className="border p-2">{tx.Category}</td>
-                                    <td className="border p-2">${tx.amount}</td>
+                <Card title="Credit (Money Out)" variant="secondary">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full" style={{ background: currentTheme.background?.paper }}>
+                            <thead>
+                                <tr>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Date</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Recipient</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Description</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Category</th>
+                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Amount</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button 
+                            </thead>
+                            <tbody>
+                                {creditTransactions.map((tx, index) => (
+                                    <tr key={index}>
+                                        <td className="border p-2">{tx.date}</td>
+                                        <td className="border p-2">{tx.Receipient}</td>
+                                        <td className="border p-2">{tx.Description}</td>
+                                        <td className="border p-2">{tx.Category}</td>
+                                        <td className="border p-2">${Number(tx.amount).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <Button
                         onClick={() => navigate('/transactions/petty-cash')}
-                        className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
+                        variant="success"
+                        className="mt-4"
                     >
                         Add New Transaction
-                    </button>
-                </div>
+                    </Button>
+                </Card>
             </div>
         </div>
     );
