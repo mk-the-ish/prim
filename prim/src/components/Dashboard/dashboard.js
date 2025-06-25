@@ -29,6 +29,7 @@ import Loader from '../ui/loader';
 import TopBar from '../ui/topbar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
+import supabase from '../../db/SupaBaseConfig'; // Make sure this is your Supabase client
 
 // Register Chart.js components
 ChartJS.register(
@@ -129,13 +130,18 @@ const barChartOptions = {
 
 const actions = [
     { icon: '📄', name: 'Bulk Invoicing', path: '/bulk-invoicing' },
-    { icon: '🔄', name: 'New Term', path: '/new-term' },
+    { icon: '🔄', name: 'New Term', path: 'new-term-modal' },
     { icon: '📅', name: 'New Year', path: '/new-year' }
 ];
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showNewTermModal, setShowNewTermModal] = useState(false);
+    const [termId, setTermId] = useState('');
+    const [password, setPassword] = useState('');
+    const [billingLoading, setBillingLoading] = useState(false);
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const year = new Date().getFullYear();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
@@ -180,6 +186,70 @@ const AdminDashboard = () => {
 
     const loading = userLoading || statsLoading || chartsLoading || cashFlowLoading;
     const userRole = userData?.role;
+
+    // New Term Billing Handler
+    const handleNewTermBilling = async () => {
+        if (!termId || !password) {
+            addToast('Please enter both Term ID and your password.', 'error');
+            return;
+        }
+        const savedPassword = "Admin@1234";
+
+        if (password !== savedPassword) {
+            addToast('Incorrect password. Please try again.', 'error');
+            return;
+        }
+        setBillingLoading(true);
+        try {
+            const billingDate = new Date().toISOString().split('T')[0];
+            // Call your Supabase Edge Function
+            const { data, error } = await supabase.functions.invoke('bill-new-term', {
+                body: {
+                    term_id: Number(termId),
+                    billing_date: billingDate,
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to bill new term via Supabase Function');
+            }
+
+            addToast(data.message || 'New term billed successfully!', 'success');
+            setShowNewTermModal(false);
+            setTermId('');
+            setPassword('');
+            // Optionally refresh dashboard data here
+        } catch (error) {
+            addToast(error.message || 'Error billing new term.', 'error');
+        } finally {
+            setBillingLoading(false);
+        }
+    };
+
+    // New Academic Year Handler
+    const handleNewAcademicYear = async () => {
+        if (!window.confirm("Are you sure you want to upgrade to a new academic year? This action cannot be undone.")) {
+            return; // User cancelled
+        }
+        setAcademicYearLoading(true);
+        try {
+            // Invoke the Supabase Edge Function
+            const { data, error } = await supabase.functions.invoke('new-academic-year', {
+                method: 'POST',
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to upgrade academic year via Supabase Function');
+            }
+
+            addToast(data.message || 'Academic year upgraded successfully!', 'success');
+            // Optionally refresh student data in your frontend to show updated grades/status
+        } catch (error) {
+            addToast(error.message || 'Error upgrading academic year.', 'error');
+        } finally {
+            setAcademicYearLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -281,8 +351,16 @@ const AdminDashboard = () => {
                                         <button
                                             key={action.name}
                                             onClick={() => {
-                                                navigate(action.path);
-                                                setIsMenuOpen(false);
+                                                if (action.name === 'New Term') {
+                                                    setShowNewTermModal(true);
+                                                    setIsMenuOpen(false);
+                                                } else if (action.name === 'New Year') {
+                                                    setIsMenuOpen(false);
+                                                    handleNewAcademicYear();
+                                                } else {
+                                                    navigate(action.path);
+                                                    setIsMenuOpen(false);
+                                                }
                                             }}
                                             className="flex items-center w-full px-4 py-2 hover:bg-gray-100 rounded"
                                             style={{
@@ -302,6 +380,82 @@ const AdminDashboard = () => {
                             >
                                 <PlusIcon className="h-6 w-6" />
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* New Term Modal */}
+                {showNewTermModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                        <div
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-sm"
+                            style={{
+                                color: currentTheme.text.primary,
+                                background: currentTheme.background.paper
+                            }}
+                        >
+                            <h2 className="text-lg font-bold mb-4">Bill New Term</h2>
+                            <p className="text-sm mb-4 text-gray-500">
+                                Enter the Term ID and your password to bill the new term.
+                            </p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" htmlFor="termId">
+                                        Term ID
+                                    </label>
+                                    <input
+                                        id="termId"
+                                        type="text"
+                                        value={termId}
+                                        onChange={(e) => setTermId(e.target.value)}
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter Term ID"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" htmlFor="password">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter your password"
+                                    />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end space-x-2">
+                                <button
+                                    onClick={() => setShowNewTermModal(false)}
+                                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleNewTermBilling}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
+                                    disabled={billingLoading}
+                                >
+                                    {billingLoading ? (
+                                        <svg
+                                            className="animate-spin h-5 w-5 mr-3"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
+                                            <path
+                                                d="M4 12a8 8 0 018-8m0 16a8 8 0 01-8-8"
+                                                className="opacity-75"
+                                            />
+                                        </svg>
+                                    ) : null}
+                                    Bill New Term
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

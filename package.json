@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "@headlessui/react": "^2.2.4",
     "react-transition-group": "^4.4.5"
+  },
+  "devDependencies": {
+    "supabase": "^2.26.9"
   }
 }
