@@ -2,12 +2,12 @@ import supabase from '../../db/SupaBaseConfig';
 
 // Fetch monthly cash flow for levy and tuition (IN/OUT) for a given year
 export const fetchCashFlowData = async (year) => {
-  // Helper to get monthly sums
-  const getMonthlySums = async (table, type) => {
+  // Helper to get monthly sums for IN/OUT, bank, and category
+  const getMonthlySums = async ({ table, type, bank, category }) => {
     const { data, error } = await supabase
       .from(table)
       .select('Amount, Date')
-      .eq('Type', type)
+      .eq('Bank', bank)
       .gte('Date', `${year}-01-01`)
       .lte('Date', `${year}-12-31`);
     if (error) throw error;
@@ -20,12 +20,12 @@ export const fetchCashFlowData = async (year) => {
     return monthly;
   };
 
-  // Fetch all in parallel
+  // Levy = CBZ, Tuition = ZB
   const [levyIn, levyOut, tuitionIn, tuitionOut] = await Promise.all([
-    getMonthlySums('LevyTransactions', 'IN'),
-    getMonthlySums('LevyTransactions', 'OUT'),
-    getMonthlySums('TuitionTransactions', 'IN'),
-    getMonthlySums('TuitionTransactions', 'OUT'),
+    getMonthlySums({ table: 'IncomingBankTransactions', type: 'IN', bank: 'cbz' }),
+    getMonthlySums({ table: 'OutgoingBankTransactions', type: 'OUT', bank: 'cbz' }),
+    getMonthlySums({ table: 'IncomingBankTransactions', type: 'IN', bank: 'zb' }),
+    getMonthlySums({ table: 'OutgoingBankTransactions', type: 'OUT', bank: 'zb' }),
   ]);
 
   return {
@@ -48,13 +48,22 @@ export const fetchCashFlowData = async (year) => {
 
 // Fetch recent transactions (last 10, most recent first)
 export const fetchRecentTransactions = async () => {
-  const { data, error } = await supabase
-    .from('Transactions')
+  // Combine incoming and outgoing for both banks
+  const { data: incoming, error: incomingError } = await supabase
+    .from('IncomingBankTransactions')
     .select('*')
     .order('Date', { ascending: false })
     .limit(10);
-  if (error) throw error;
-  return data;
+  const { data: outgoing, error: outgoingError } = await supabase
+    .from('OutgoingBankTransactions')
+    .select('*')
+    .order('Date', { ascending: false })
+    .limit(10);
+  if (incomingError || outgoingError) throw incomingError || outgoingError;
+  // Merge and sort by date
+  const all = [...(incoming || []), ...(outgoing || [])];
+  all.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+  return all.slice(0, 10);
 };
 
 // Fetch dashboard statistics for admin

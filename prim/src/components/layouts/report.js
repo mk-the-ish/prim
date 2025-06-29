@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../api/userApi';
-import DailyReport from './daily';
-import MonthlyReport from './monthly';
-import TermlyReport from './termly';
-import YearlyReport from './yearly';
-import TopBar from '../../ui/topbar';
-import Loader from '../../ui/loader';
-import Button from '../../ui/button';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { useToast } from '../../../contexts/ToastContext';
+import { fetchUser } from '../api/userApi';
+import DailyReport from '../studentPayments/reports/daily';
+import MonthlyReport from '../studentPayments/reports/monthly';
+import TermlyReport from '../studentPayments/reports/termly';
+import YearlyReport from '../studentPayments/reports/yearly';
+import TopBar from '../ui/topbar';
+import Loader from '../ui/loader';
+import Button from '../ui/button';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const Report = () => {
     const [activeReport, setActiveReport] = useState('daily'); // Default to 'daily'

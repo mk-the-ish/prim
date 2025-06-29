@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import CommIN from './in/commIN';
-import CommOUT from './out/commOUT';
+import CommIN from './commIN';
+import CommOUT from './commOUT';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { fetchFees, fetchLevyUSD, fetchLevyZWG, fetchTuitionUSD, fetchTuitionZWG } from '../../api/viewPaymentsApi';
+import { fetchFees, fetchLevyUSD, fetchLevyZWG, fetchTuitionUSD, fetchTuitionZWG, fetchCBZIncoming, fetchCBZOutgoing, fetchZBIncoming, fetchZBOutgoing } from '../../api/viewPaymentsApi';
 import ReportCard from '../../ui/reportCard';
 import Card from '../../ui/card';
 import Loader from '../../ui/loader';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import SummaryCard from '../../ui/summaryCard';
+import FeeReportPanel from './feeReportPanel';
+import AIReportPanel from './AIReportPanel';
+import { generateCashflowReportWithAI, generateFeeReportWithAI } from '../../../db/firebaseConfig';
 
 const YearlyReport = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -26,196 +29,92 @@ const YearlyReport = () => {
         tuitionPrepayments: { usd: 0, zwg: 0 },
     });
     const [loading, setLoading] = useState(true);
+    const [feePayments, setFeePayments] = useState([]);
+    const [incoming, setIncoming] = useState([]);
+    const [outgoing, setOutgoing] = useState([]);
 
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
 
     useEffect(() => {
-        fetchYearlyData();
+        fetchAll(selectedYear);
         // eslint-disable-next-line
     }, [selectedYear]);
 
-    const fetchYearlyData = async () => {
+    const fetchAll = async (year) => {
         setLoading(true);
         try {
-            const startDate = `${selectedYear}-01-01`;
-            const endDate = `${selectedYear}-12-31`;
-
-            // Fetch all Fees for the year
-            const [fees] = await Promise.all([
-                fetchFees(),
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            const allFees = await fetchFees();
+            setFeePayments(allFees.filter(txn => txn.Date >= startDate && txn.Date <= endDate));
+            const [cbzIn, cbzOut, zbIn, zbOut] = await Promise.all([
+                fetchCBZIncoming(startDate, endDate),
+                fetchCBZOutgoing(startDate, endDate),
+                fetchZBIncoming(startDate, endDate),
+                fetchZBOutgoing(startDate, endDate)
             ]);
-            // Both fetchLevyUSD and fetchLevyZWG fetch all Fees, so we can filter by Type and Currency
-
-            // USD
-            const usdFees = fees.filter(
-                f =>
-                    f.Currency === 'usd' &&
-                    f.Date >= startDate &&
-                    f.Date <= endDate
-            );
-            // ZWG
-            const zwgFees = fees.filter(
-                f =>
-                    f.Currency === 'zwg' &&
-                    f.Date >= startDate &&
-                    f.Date <= endDate
-            );
-
-            // Levy USD
-            const levyUSD = usdFees.filter(f => f.Type === 'Levy');
-            // Levy ZWG
-            const levyZWG = zwgFees.filter(f => f.Type === 'Levy');
-            // Tuition USD
-            const tuitionUSD = usdFees.filter(f => f.Type === 'Tuition');
-            // Tuition ZWG
-            const tuitionZWG = zwgFees.filter(f => f.Type === 'Tuition');
-
-            // Totals
-            setSummaryData({
-                levyPayments: {
-                    usd: levyUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: levyZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                tuitionPayments: {
-                    usd: tuitionUSD.reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: tuitionZWG.reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                levyTxnIn: {
-                    usd: levyUSD.filter(f => f.Amount > 0).reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: levyZWG.filter(f => f.Amount > 0).reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                levyTxnOut: {
-                    usd: levyUSD.filter(f => f.Amount < 0).reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
-                    zwg: levyZWG.filter(f => f.Amount < 0).reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
-                },
-                tuitionTxnIn: {
-                    usd: tuitionUSD.filter(f => f.Amount > 0).reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: tuitionZWG.filter(f => f.Amount > 0).reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                tuitionTxnOut: {
-                    usd: tuitionUSD.filter(f => f.Amount < 0).reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0),
-                    zwg: tuitionZWG.filter(f => f.Amount < 0).reduce((sum, txn) => sum + Math.abs(txn.Amount || 0), 0)
-                }
-            });
-
-            setRecoveries({
-                levyRecoveries: {
-                    usd: levyUSD.filter(f => f.form === 'recovery').reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: levyZWG.filter(f => f.form === 'recovery').reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                tuitionRecoveries: {
-                    usd: tuitionUSD.filter(f => f.form === 'recovery').reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: tuitionZWG.filter(f => f.form === 'recovery').reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                }
-            });
-
-            setPrepayments({
-                levyPrepayments: {
-                    usd: levyUSD.filter(f => f.form === 'prepayment').reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: levyZWG.filter(f => f.form === 'prepayment').reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                },
-                tuitionPrepayments: {
-                    usd: tuitionUSD.filter(f => f.form === 'prepayment').reduce((sum, txn) => sum + (txn.Amount || 0), 0),
-                    zwg: tuitionZWG.filter(f => f.form === 'prepayment').reduce((sum, txn) => sum + (txn.Amount || 0), 0)
-                }
-            });
-
+            setIncoming([...cbzIn, ...zbIn]);
+            setOutgoing([...cbzOut, ...zbOut]);
             setLoading(false);
         } catch (error) {
-            addToast('Error fetching yearly data', 'error');
+            addToast('Error fetching yearly data.', 'error');
             setLoading(false);
         }
+    };
+
+    // Adapter for AIReportPanel (cashflow)
+    const handleGenerateCashflowReport = async ({ periodLabel, data }) => {
+        const { incoming, outgoing } = data;
+        const result = await generateCashflowReportWithAI({ periodLabel, periodType: 'year', incoming, outgoing });
+        if (result && result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+            return { summary: result.candidates[0].content.parts[0].text };
+        }
+        return result;
+    };
+    // Adapter for FeeReportPanel
+    const handleGenerateFeeReport = async ({ periodLabel, data }) => {
+        const result = await generateFeeReportWithAI({ periodLabel, periodType: 'year', feePayments: data });
+        if (result && result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+            return { summary: result.candidates[0].content.parts[0].text };
+        }
+        return result;
     };
 
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]" style={{ background: currentTheme.background?.default }}>
-                <Loader type="card" count={1} />
+                <Loader type="card" count={2} />
             </div>
         );
     }
 
     return (
         <div className="p-6">
-            <Card
-                title="Yearly Transactions Report"
-                headerAction={
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        className="px-4 py-2 border rounded-lg"
-                        style={{
-                            background: currentTheme.background?.paper,
-                            color: currentTheme.text?.primary,
-                            borderColor: currentTheme.divider
-                        }}
-                    >
-                        {Array.from({ length: 5 }, (_, i) => (
-                            <option key={i} value={new Date().getFullYear() - i}>
-                                {new Date().getFullYear() - i}
-                            </option>
-                        ))}
-                    </select>
-                }
-            >
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                    <ReportCard
-                        title="Levy Txn In"
-                        data={summaryData.levyTxnIn}
-                    />
-                    <ReportCard
-                        title="Levy Txn Out"
-                        data={summaryData.levyTxnOut}
-                        variant="secondary"
-                    />
-                    <ReportCard
-                        title="Tuition Txn In"
-                        data={summaryData.tuitionTxnIn}
-                    />
-                    <ReportCard
-                        title="Tuition Txn Out"
-                        data={summaryData.tuitionTxnOut}
-                        variant="secondary"
-                    />
-                    <ReportCard
-                        title="Levy Payments"
-                        data={summaryData.levyPayments}
-                    />
-                    <ReportCard
-                        title="Tuition Payments"
-                        data={summaryData.tuitionPayments}
-                        variant="secondary"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <SummaryCard title="Levy Recoveries" icon={null} bgColor="bg-green-100">
-                        <div className="space-y-2">
-                            <p className="text-lg">USD: ${recoveries.levyRecoveries.usd.toFixed(2)}</p>
-                            <p className="text-lg">ZWG: ${recoveries.levyRecoveries.zwg.toFixed(2)}</p>
-                        </div>
-                    </SummaryCard>
-                    <SummaryCard title="Tuition Recoveries" icon={null} bgColor="bg-blue-100">
-                        <div className="space-y-2">
-                            <p className="text-lg">USD: ${recoveries.tuitionRecoveries.usd.toFixed(2)}</p>
-                            <p className="text-lg">ZWG: ${recoveries.tuitionRecoveries.zwg.toFixed(2)}</p>
-                        </div>
-                    </SummaryCard>
-                    <SummaryCard title="Levy Prepayments" icon={null} bgColor="bg-yellow-100">
-                        <div className="space-y-2">
-                            <p className="text-lg">USD: ${prepayments.levyPrepayments.usd.toFixed(2)}</p>
-                            <p className="text-lg">ZWG: ${prepayments.levyPrepayments.zwg.toFixed(2)}</p>
-                        </div>
-                    </SummaryCard>
-                    <SummaryCard title="Tuition Prepayments" icon={null} bgColor="bg-purple-100">
-                        <div className="space-y-2">
-                            <p className="text-lg">USD: ${prepayments.tuitionPrepayments.usd.toFixed(2)}</p>
-                            <p className="text-lg">ZWG: ${prepayments.tuitionPrepayments.zwg.toFixed(2)}</p>
-                        </div>
-                    </SummaryCard>
-                </div>
-            </Card>
+            <div className="mb-6 flex gap-4 items-center">
+                <input
+                    type="number"
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(e.target.value)}
+                    className="px-4 py-2 border rounded-lg"
+                    style={{
+                        background: currentTheme.background?.paper,
+                        color: currentTheme.text?.primary,
+                        borderColor: currentTheme.divider
+                    }}
+                />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FeeReportPanel selectedDate={selectedYear} feePayments={feePayments} generateReport={handleGenerateFeeReport} />
+                <AIReportPanel
+                    title="Cashflow Report"
+                    prompt="Summarize the cashflow for the selected year."
+                    data={{ incoming, outgoing }}
+                    periodLabel={selectedYear}
+                    generateReport={handleGenerateCashflowReport}
+                    description="AI-generated summary of all incoming and outgoing bank transactions for the selected year."
+                />
+            </div>
         </div>
     );
 };

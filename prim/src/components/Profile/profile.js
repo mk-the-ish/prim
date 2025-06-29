@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCircleIcon, CogIcon } from '@heroicons/react/24/outline';
 import supabase from '../../db/SupaBaseConfig';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Profile = () => {
     const navigate = useNavigate();
+    const { currentTheme } = useTheme();
     const [user, setUser] = useState(null);
     const [userDetails, setUserDetails] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -104,45 +106,47 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background?.default }}>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: currentTheme.primary?.main || '#3b82f6' }}></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="min-h-screen py-6 px-4 sm:px-6 lg:px-8" style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}>
+            <div className="max-w-md mx-auto rounded-xl shadow-md overflow-hidden" style={{ background: currentTheme.background?.paper, color: currentTheme.text?.primary }}>
                 <div className="p-8">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl text-center font-bold text-gray-900">Profile</h2>
+                        <h2 className="text-2xl text-center font-bold" style={{ color: currentTheme.text?.primary }}>Profile</h2>
                         <button
                             onClick={() => navigate('/settings')}
-                            className="text-gray-600 hover:text-gray-900"
+                            style={{ color: currentTheme.text?.secondary }}
+                            className="hover:opacity-80"
                         >
                             <CogIcon className="h-6 w-6" />
                         </button>
                     </div>
 
                     {error && (
-                        <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                            <p className="text-sm text-red-700">{error}</p>
+                        <div className="mb-4 border-l-4 p-4 rounded" style={{ background: currentTheme.error?.light || '#fef2f2', borderColor: currentTheme.error?.main || '#f87171' }}>
+                            <p className="text-sm" style={{ color: currentTheme.error?.main || '#b91c1c' }}>{error}</p>
                         </div>
                     )}
 
                     <div className="flex items-center justify-center mb-6">
-                        <UserCircleIcon className="h-24 w-24 text-gray-400" />
+                        <UserCircleIcon className="h-24 w-24" style={{ color: currentTheme.text?.disabled || '#9ca3af' }} />
                     </div>
 
                     {isEditing ? (
                         <form onSubmit={handleUpdateProfile} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Name</label>
+                                <label className="block text-sm font-medium" style={{ color: currentTheme.text?.secondary }}>Name</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                    style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary, borderColor: currentTheme.divider }}
                                 />
                             </div>
 
@@ -150,13 +154,15 @@ const Profile = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                    className="px-4 py-2 text-sm font-medium border rounded-md hover:opacity-80"
+                                    style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary, borderColor: currentTheme.divider }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                                    className="px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                                    style={{ background: currentTheme.primary?.main, color: currentTheme.primary?.contrastText }}
                                 >
                                     Save Changes
                                 </button>
@@ -165,30 +171,32 @@ const Profile = () => {
                     ) : (
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                                <p className="mt-1 text-sm text-gray-900">{user?.email}</p>
+                                <h3 className="text-sm font-medium" style={{ color: currentTheme.text?.secondary }}>Email</h3>
+                                <p className="mt-1 text-sm" style={{ color: currentTheme.text?.primary }}>{user?.email}</p>
                             </div>
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500">Name</h3>
-                                <p className="mt-1 text-sm text-gray-900">{userDetails?.name}</p>
+                                <h3 className="text-sm font-medium" style={{ color: currentTheme.text?.secondary }}>Name</h3>
+                                <p className="mt-1 text-sm" style={{ color: currentTheme.text?.primary }}>{userDetails?.name}</p>
                             </div>
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500">Role</h3>
-                                <p className="mt-1 text-sm text-gray-900">{userDetails?.role}</p>
+                                <h3 className="text-sm font-medium" style={{ color: currentTheme.text?.secondary }}>Role</h3>
+                                <p className="mt-1 text-sm" style={{ color: currentTheme.text?.primary }}>{userDetails?.role}</p>
                             </div>
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="mt-4 w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100"
+                                className="mt-4 w-full px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                                style={{ background: currentTheme.primary?.light, color: currentTheme.primary?.main }}
                             >
                                 Edit Profile
                             </button>
                         </div>
                     )}
 
-                    <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="mt-6 pt-6 border-t" style={{ borderColor: currentTheme.divider }}>
                         <button
                             onClick={handleLogout}
-                            className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                            className="w-full px-4 py-2 text-sm font-medium rounded-md hover:opacity-80"
+                            style={{ background: currentTheme.error?.main, color: currentTheme.error?.contrastText }}
                         >
                             Log out
                         </button>

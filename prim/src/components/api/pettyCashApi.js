@@ -2,7 +2,7 @@ import supabase from '../../db/SupaBaseConfig';
 
 export const fetchPettyCashTransactions = async () => {
     const { data, error } = await supabase
-        .from('pettyCash')
+        .from('PettyCash')
         .select('*');
     if (error) throw error;
     return data;

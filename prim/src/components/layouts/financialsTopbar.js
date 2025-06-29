@@ -6,8 +6,6 @@ import { fetchUser } from '../api/userApi.js';
 import CSLevy from './../financials/Cashbooks/levy/levy.js';
 import CSTuition from './../financials/Cashbooks/tuition/tuition.js';
 import ViewInvoices from '../bankTransactions/purchasesInvoices/viewInvoices.js';
-import Budget from './../financials/Budget/budget.js';
-import HR from './../financials/HR/HR.js';
 import { useTheme } from '../../contexts/ThemeContext';
 import Button from '../ui/button';
 import Loader from '../ui/loader';
@@ -46,10 +44,6 @@ const Financials = () => {
                 return <CSTuition />;
             case 'Invoices':
                 return <ViewInvoices />;
-            case 'Budget':
-                return <Budget />;
-            case 'HR':
-                return <HR />;
             default:
                 return <CSLevy />;
         }
@@ -72,9 +66,7 @@ const Financials = () => {
     const navButtons = [
         { key: 'Levy', label: 'Levy Cashbook' },
         { key: 'Tuition', label: 'Tuition Cashbook' },
-        { key: 'Invoices', label: 'Invoices' },
-        { key: 'Budget', label: 'Budget' },
-        { key: 'HR', label: 'HR' },
+        { key: 'Invoices', label: 'Invoices' }
     ];
 
     return (

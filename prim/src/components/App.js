@@ -10,11 +10,11 @@ import Sidebar from './layouts/Sidebar.js';
 import Students from './studentPayments/students/students.js';
 import { Fees } from './studentPayments/levy/fees.js';
 import StudentView from './studentPayments/students/StudentView.js';
-import NewCommIn from './cashTransactions/commission/in/commIN.js';
-import NewCommOut from './cashTransactions/commission/out/commOUT.js';
+import NewCommIn from './cashTransactions/commission/commIN.js';
+import NewCommOut from './cashTransactions/commission/commOUT.js';
 import Commission from './cashTransactions/commission/commission.js';
 import Financials from './layouts/financialsTopbar.js';
-import Report from './studentPayments/reports/report.js';
+import Report from './layouts/report.js';
 import Invoice from './studentPayments/reports/invoice.js';
 import BulkInvoicing from './dashboard/bulkInvoicing.js';
 import TopBar from './layouts/TransactionsTopbar.js';
@@ -74,6 +74,7 @@ function AppRoutes() {
       <Route path="/bulk-invoicing" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><BulkInvoicing /></Sidebar></ProtectedRoute>} />
       <Route path="/students" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher']}><Sidebar><Students /></Sidebar></ProtectedRoute>} />
       <Route path="/student-view/:studentId" element={<ProtectedRoute allowedRoles={['parent', 'bursar', 'teacher']}><Sidebar><StudentView /></Sidebar></ProtectedRoute>} />
+      <Route path="/parent-dashboard/:studentId?" element={<ProtectedRoute allowedRoles={['parent']}><Sidebar><ParentDashboard /></Sidebar></ProtectedRoute>} />
       <Route path="/fees" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Fees /></Sidebar></ProtectedRoute>} />
       <Route path="/commission" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><Commission /></Sidebar></ProtectedRoute>} />
       <Route path="/newCommIn" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommIn /></Sidebar></ProtectedRoute>} />

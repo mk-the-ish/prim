@@ -39,5 +39,5 @@ export const fetchLinkedStudentIdsForParent = async () => {
         .eq('ParentUserID', parentUserId);
     if (error) throw error;
     // Return an array of student IDs (supporting multiple children)
-    return (data || []).map(link => link.StudentID);
+    return data;
 };

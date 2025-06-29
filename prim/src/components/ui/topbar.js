@@ -12,7 +12,7 @@ const ThemeToggleButton = () => {
             className="flex items-center px-3 py-2 rounded transition-colors duration-200 ml-4"
             style={{
                 background: currentTheme.background?.paper || '#374151',
-                color: currentTheme.text?.primary || '#fff',
+                color: currentTheme.text?.primary || '#ffffff',
                 border: `1px solid ${currentTheme.divider || '#374151'}`
             }}
             title={themeName === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
@@ -30,7 +30,7 @@ const TopBar = ({ title, userName }) => {
         <div
             className="py-4 px-6 flex items-center justify-between relative"
             style={{
-                background: currentTheme.background?.topbar || '#1f2937',
+                background: currentTheme.background?.paper || '#1f2937',
                 color: currentTheme.text?.primary || '#fff'
             }}
         >

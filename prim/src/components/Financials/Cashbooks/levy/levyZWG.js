@@ -11,8 +11,8 @@ const fetchLevyZWG = async ({ queryKey }) => {
     // Fetch debit data
     const { data: debitData, error: debitError } = await supabase
         .from('IncomingBankTransactions')
-        .select('Date, id, AmountZWG, Category')
-        .eq('Account', 'cbz')
+        .select('Date, id, Amount, Category')
+        .eq('Bank', 'cbz')
         .eq('Currency', 'zwg')
         .gte('Date', startDate)
         .lte('Date', endDate);
@@ -20,8 +20,8 @@ const fetchLevyZWG = async ({ queryKey }) => {
     // Fetch credit data
     const { data: creditData, error: creditError } = await supabase
         .from('OutgoingBankTransactions')
-        .select('Date, id, AmountZWG, Category')
-        .eq('Account', 'cbz')
+        .select('Date, id, Amount, Category')
+        .eq('Bank','cbz')
         .eq('Currency', 'zwg')
         .gte('Date', startDate)
         .lte('Date', endDate);
@@ -109,11 +109,11 @@ const CashbookLevyZWG = () => {
                     <thead>
                         <tr>
                             {/* Debit Side */}
-                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-blue-100">
+                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-blue-300">
                                 Debit
                             </th>
                             {/* Credit Side */}
-                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-red-100">
+                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-red-300">
                                 Credit
                             </th>
                         </tr>

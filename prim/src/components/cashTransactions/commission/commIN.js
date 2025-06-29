@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../../../api/userApi';
-import { fetchCommissions } from '../../../api/viewPaymentsApi';
+import { fetchUser } from '../../api/userApi';
+import { fetchCommissions, addCommission } from '../../api/viewPaymentsApi';
 import { useNavigate } from 'react-router-dom';
-import DataTable from '../../../ui/dataTable';
-import Button from '../../../../components/ui/button';
-import Loader from '../../../../components/ui/loader';
-import { useTheme } from '../../../../contexts/ThemeContext';
-import { useToast } from '../../../../contexts/ToastContext';
-import Card from '../../../ui/card';
+import DataTable from '../../ui/dataTable';
+import Button from '../../ui/button';
+import Loader from '../../ui/loader';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../../contexts/ToastContext';
+import Card from '../../ui/card';
+import FormModal from '../../ui/FormModal';
+import Form from '../../ui/form';
 
 const ITEMS_PER_PAGE = 10;
 
 const CommIN = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    const [modalOpen, setModalOpen] = useState(false);
+    const [formLoading, setFormLoading] = useState(false);
+    const [formError, setFormError] = useState('');
+    const [formValues, setFormValues] = useState({
+        Date: '',
+        Payee: '',
+        Amount: '',
+        Description: ''
+    });
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
@@ -27,7 +38,7 @@ const CommIN = () => {
             navigate('/login');
         },
         onSuccess: (data) => {
-            if (!data || !['admin', 'bursar'].includes(data.role)) {
+            if (!data) {
                 addToast('You are not authorized to view this page.', 'error');
                 navigate('/unauthorised');
             }
@@ -38,8 +49,7 @@ const CommIN = () => {
 
     const { data: commissions = [], isLoading: commissionsLoading } = useQuery({
         queryKey: ['commissions'],
-        queryFn: fetchCommissions,
-        enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
+        queryFn: fetchCommissions
     });
 
     const commissionsIn = commissions.filter(commission => commission.flow === 'in');
@@ -56,6 +66,31 @@ const CommIN = () => {
         { header: 'Amount', accessor: 'Amount' },
         { header: 'Description', accessor: 'Description' }
     ];
+
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setFormValues((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setFormLoading(true);
+        setFormError('');
+        try {
+            await addCommission({
+                ...formValues,
+                flow: 'in',
+                Amount: parseFloat(formValues.Amount),
+            });
+            setModalOpen(false);
+            setFormValues({ Date: '', Payee: '', Amount: '', Description: '' });
+            addToast('Commission added successfully!', 'success');
+        } catch (err) {
+            setFormError(err.message || 'Failed to add commission');
+        } finally {
+            setFormLoading(false);
+        }
+    };
 
     if (userLoading || commissionsLoading) {
         return (
@@ -88,7 +123,7 @@ const CommIN = () => {
                         }}
                     />
                     <Button
-                        onClick={() => navigate('/newCommIn')}
+                        onClick={() => setModalOpen(true)}
                         variant="primary"
                         className="px-4 py-2"
                     >
@@ -106,6 +141,42 @@ const CommIN = () => {
                     isLoading={userLoading || commissionsLoading}
                 />
             </Card>
+            <FormModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add Commission In">
+                <Form onSubmit={handleFormSubmit} loading={formLoading}>
+                    <Form.Input
+                        label="Date"
+                        name="Date"
+                        type="date"
+                        value={formValues.Date}
+                        onChange={handleFormChange}
+                        required
+                    />
+                    <Form.Input
+                        label="Payee"
+                        name="Payee"
+                        value={formValues.Payee}
+                        onChange={handleFormChange}
+                        required
+                    />
+                    <Form.Input
+                        label="Amount"
+                        name="Amount"
+                        type="number"
+                        step="0.01"
+                        value={formValues.Amount}
+                        onChange={handleFormChange}
+                        required
+                    />
+                    <Form.Input
+                        label="Description"
+                        name="Description"
+                        value={formValues.Description}
+                        onChange={handleFormChange}
+                        required
+                    />
+                    {formError && <div className="text-red-500 text-sm mt-2">{formError}</div>}
+                </Form>
+            </FormModal>
         </div>
     );
 };

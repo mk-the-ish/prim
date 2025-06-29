@@ -7,6 +7,7 @@ import { fetchLinkedStudentIdsForParent } from '../api/studentsInfoApi';
 import Card from '../ui/card';
 import DataTable from '../ui/dataTable';
 import Loader from '../ui/loader';
+import { render } from '@react-pdf/renderer';
 
 const ParentDashboard = () => {
     const { currentTheme } = useTheme();
@@ -22,15 +23,15 @@ const ParentDashboard = () => {
         if (!urlStudentId) {
             (async () => {
                 try {
-                    const linkedIds = await fetchLinkedStudentIdsForParent();
-                    if (linkedIds.length === 0) {
+                    const studentId = await fetchLinkedStudentIdsForParent();
+                    if (!studentId) {
                         setError('No student linked to this parent account.');
                         setLoading(false);
                         return;
                     }
-                    setStudentId(linkedIds[0]);
+                    setStudentId(studentId);
                     // Optionally, update the URL for deep-linking
-                    navigate(`/parent-dashboard/${linkedIds[0]}`, { replace: true });
+                    navigate(`/parent-dashboard/${studentId}`);
                 } catch (err) {
                     setError('Failed to fetch linked student.');
                     setLoading(false);
@@ -59,9 +60,9 @@ const ParentDashboard = () => {
 
     // Define columns for grades table
     const gradeColumns = [
-        { header: 'Term', accessor: 'Term' },
-        { header: 'Subject', accessor: 'Subject' },
-        { header: 'Grade', accessor: 'Grade' },
+        { header: 'Term', render: (row) => row.Terms?.term || 'N/A' },
+        { header: 'Subject', render: (row) => row.subjects?.name || 'N/A' },
+        { header: 'Grade', accessor: 'Total' },
         { header: 'Comments', accessor: 'Comments' },
     ];
 

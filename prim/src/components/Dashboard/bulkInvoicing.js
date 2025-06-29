@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { fetchUser } from '../../components/api/userApi';
 import { fetchStudentDetails } from '../api/studentsInfoApi';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const styles = StyleSheet.create({
     page: { padding: 30 },
@@ -69,13 +70,14 @@ const BulkInvoicing = () => {
     const [classFilter, setClassFilter] = useState('');
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 50;
+    const { currentTheme } = useTheme();
 
     const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
         queryFn: fetchUser,
         onError: () => navigate('/login'),
         onSuccess: (data) => {
-            if (!data || !['admin', 'bursar'].includes(data.role)) {
+            if (!data) {
                 navigate('/unauthorised');
             }
         }
@@ -83,24 +85,24 @@ const BulkInvoicing = () => {
 
     const { data: studentData = {}, isLoading: studentsLoading } = useQuery({
         queryKey: ['studentsInvoicing', { gradeFilter, classFilter, page }],
-        queryFn: () => fetchStudentDetails({ gradeFilter, classFilter, page, pageSize: PAGE_SIZE }),
-        enabled: !!userData?.role && ['admin'].includes(userData.role)
+        queryFn: () => fetchStudentDetails({ gradeFilter, classFilter, page, pageSize: PAGE_SIZE })
     });
 
     const { students = [], totalPages = 1 } = studentData;
     const loading = userLoading || studentsLoading;
 
     return (
-        <div className="bg-gray-100 min-h-screen">
-            <div className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-                <Link to="/profile" className="flex items-center hover:text-gray-300 transition-colors duration-200">
+        <div className="min-h-screen" style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}>
+            <div className="py-4 px-6 flex justify-between items-center" style={{ background: currentTheme.background?.paper, color: currentTheme.text?.primary }}>
+                <Link to="/profile" className="flex items-center hover:opacity-80 transition-colors duration-200">
                     <FaUserCircle className="text-lg" />
                     <span className="ml-4">{userData?.name || 'Profile'}</span>
                 </Link>
                 <h1 className="text-2xl font-bold text-center flex-1">Bulk Invoicing</h1>
                 <Link
                     to="/dashboard"
-                    className="text-white hover:text-gray-300 transition-colors duration-200"
+                    className="hover:opacity-80 transition-colors duration-200"
+                    style={{ color: currentTheme.text?.primary }}
                 >
                     Back to Dashboard
                 </Link>
@@ -115,7 +117,12 @@ const BulkInvoicing = () => {
                             value={gradeFilter}
                             onChange={(e) => setGradeFilter(e.target.value)}
                             placeholder="Enter Grade"
-                            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2"
+                            style={{
+                                background: currentTheme.background?.paper,
+                                color: currentTheme.text?.primary,
+                                borderColor: currentTheme.divider
+                            }}
                         />
                     </div>
                     <div>
@@ -125,11 +132,16 @@ const BulkInvoicing = () => {
                             value={classFilter}
                             onChange={(e) => setClassFilter(e.target.value)}
                             placeholder="Enter Class"
-                            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2"
+                            style={{
+                                background: currentTheme.background?.paper,
+                                color: currentTheme.text?.primary,
+                                borderColor: currentTheme.divider
+                            }}
                         />
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="bg-white p-6 rounded-lg shadow-md" style={{ background: currentTheme.background?.paper, color: currentTheme.text?.primary }}>
                     <PDFDownloadLink
                         document={<InvoicePDF students={students} />}
                         fileName="student_invoices.pdf"
@@ -147,7 +159,8 @@ const BulkInvoicing = () => {
                             {students.map((student) => (
                                 <div
                                     key={student.id}
-                                    className="p-4 border border-gray-300 rounded-lg shadow-sm bg-gray-50"
+                                    className="p-4 border rounded-lg shadow-sm"
+                                    style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary, borderColor: currentTheme.divider }}
                                 >
                                     <h2 className="text-xl font-bold mb-4">Student Invoice</h2>
                                     <p><strong>Student ID:</strong> {student.id}</p>

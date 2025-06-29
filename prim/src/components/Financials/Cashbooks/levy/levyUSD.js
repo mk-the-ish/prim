@@ -11,8 +11,8 @@ const fetchLevyUSD = async ({ queryKey }) => {
     // Fetch debit data
     const { data: debitData, error: debitError } = await supabase
         .from('IncomingBankTransactions')
-        .select('Date, id, AmountUSD, Category')
-        .eq('Account', 'cbz')
+        .select('Date, id, Amount, Category')
+        .eq('Bank', 'cbz')
         .eq('Currency', 'usd')
         .gte('Date', startDate)
         .lte('Date', endDate);
@@ -20,8 +20,8 @@ const fetchLevyUSD = async ({ queryKey }) => {
     // Fetch credit data
     const { data: creditData, error: creditError } = await supabase
         .from('OutgoingBankTransactions')
-        .select('Date, id, AmountUSD, Category')
-        .eq('Account', 'cbz')
+        .select('Date, id, Amount, Category')
+        .eq('Bank', 'cbz')
         .eq('Currency', 'usd')
         .gte('Date', startDate)
         .lte('Date', endDate);
@@ -52,14 +52,14 @@ const CashbookLevyUSD = () => {
     const categories = data?.categories || [];
 
     const calculateTotals = (data) => {
-        const totals = { AmountUSD: 0 };
+        const totals = { Amount: 0 };
         categories.forEach((category) => {
             totals[category] = 0;
         });
         data.forEach((entry) => {
-            totals.AmountUSD += entry.AmountUSD || 0;
+            totals.Amount += entry.Amount || 0;
             if (entry.Category && totals[entry.Category] !== undefined) {
-                totals[entry.Category] += entry.AmountUSD || 0;
+                totals[entry.Category] += entry.Amount || 0;
             }
         });
         return totals;
@@ -109,11 +109,11 @@ const CashbookLevyUSD = () => {
                     <thead>
                         <tr>
                             {/* Debit Side */}
-                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-blue-100">
+                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-blue-300">
                                 Debit
                             </th>
                             {/* Credit Side */}
-                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-red-100">
+                            <th colSpan={categories.length + 3} className="text-left px-4 py-2 bg-red-300">
                                 Credit
                             </th>
                         </tr>
@@ -165,11 +165,11 @@ const CashbookLevyUSD = () => {
                                     <>
                                         <td className="px-4 py-2">{new Date(debitData[index].Date).toLocaleDateString()}</td>
                                         <td className="px-4 py-2">{debitData[index].id}</td>
-                                        <td className="px-4 py-2">${debitData[index].AmountUSD !== undefined ? debitData[index].AmountUSD.toFixed(2) : '0.00'}</td>
+                                        <td className="px-4 py-2">${debitData[index].Amount !== undefined ? debitData[index].Amount.toFixed(2) : '0.00'}</td>
                                         {categories.map((category) => (
                                             <td key={category} className="px-4 py-2">
                                                 {debitData[index].Category === category
-                                                    ? `$${debitData[index].AmountUSD !== undefined ? debitData[index].AmountUSD.toFixed(2) : '0.00'}`
+                                                    ? `$${debitData[index].Amount !== undefined ? debitData[index].Amount.toFixed(2) : '0.00'}`
                                                     : ''}
                                             </td>
                                         ))}
@@ -182,11 +182,11 @@ const CashbookLevyUSD = () => {
                                     <>
                                         <td className="px-4 py-2">{new Date(creditData[index].Date).toLocaleDateString()}</td>
                                         <td className="px-4 py-2">{creditData[index].id}</td>
-                                        <td className="px-4 py-2">${creditData[index].AmountUSD !== undefined ? creditData[index].AmountUSD.toFixed(2) : '0.00'}</td>
+                                        <td className="px-4 py-2">${creditData[index].Amount !== undefined ? creditData[index].Amount.toFixed(2) : '0.00'}</td>
                                         {categories.map((category) => (
                                             <td key={category} className="px-4 py-2">
                                                 {creditData[index].Category === category
-                                                    ? `$${creditData[index].AmountUSD !== undefined ? creditData[index].AmountUSD.toFixed(2) : '0.00'}`
+                                                    ? `$${creditData[index].Amount !== undefined ? creditData[index].Amount.toFixed(2) : '0.00'}`
                                                     : ''}
                                             </td>
                                         ))}
@@ -201,7 +201,7 @@ const CashbookLevyUSD = () => {
                             {/* Debit Totals */}
                             <td className="px-4 py-2 font-bold">Totals</td>
                             <td className="px-4 py-2"></td>
-                            <td className="px-4 py-2 font-bold">${debitTotals.AmountUSD !== undefined ? debitTotals.AmountUSD.toFixed(2) : '0.00'}</td>
+                            <td className="px-4 py-2 font-bold">${debitTotals.Amount !== undefined ? debitTotals.Amount.toFixed(2) : '0.00'}</td>
                             {categories.map((category) => (
                                 <td key={category} className="px-4 py-2 font-bold">
                                     ${debitTotals[category] !== undefined ? debitTotals[category].toFixed(2) : '0.00'}
@@ -210,7 +210,7 @@ const CashbookLevyUSD = () => {
                             {/* Credit Totals */}
                             <td className="px-4 py-2 font-bold">Totals</td>
                             <td className="px-4 py-2"></td>
-                            <td className="px-4 py-2 font-bold">${creditTotals.AmountUSD !== undefined ? creditTotals.AmountUSD.toFixed(2) : '0.00'}</td>
+                            <td className="px-4 py-2 font-bold">${creditTotals.Amount !== undefined ? creditTotals.Amount.toFixed(2) : '0.00'}</td>
                             {categories.map((category) => (
                                 <td key={category} className="px-4 py-2 font-bold">
                                     ${creditTotals[category] !== undefined ? creditTotals[category].toFixed(2) : '0.00'}

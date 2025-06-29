@@ -3,7 +3,7 @@ import supabase from '../../db/SupaBaseConfig';
 // Add a new term to the terms table
 export async function addTerm({ start_date, end_date, levy_billed, tuition_billed }) {
   const { data, error } = await supabase
-    .from('terms')
+    .from('Terms')
     .insert([
       {
         start_date,
@@ -21,7 +21,7 @@ export async function addTerm({ start_date, end_date, levy_billed, tuition_bille
 // Fetch all terms (for date overlap validation)
 export async function fetchTerms() {
   const { data, error } = await supabase
-    .from('terms')
+    .from('Terms')
     .select('*');
   if (error) throw new Error(error.message);
   return data;

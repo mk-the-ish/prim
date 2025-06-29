@@ -11,8 +11,8 @@ const fetchTuitionZWG = async ({ queryKey }) => {
     // Fetch debit data
     const { data: debitData, error: debitError } = await supabase
         .from('IncomingBankTransactions')
-        .select('Date, id, AmountZWG, Category')
-        .eq('Account', 'zb')
+        .select('Date, id, Amount, Category')
+        .eq('Bank', 'zb')
         .eq('Currency', 'zwg')
         .gte('Date', startDate)
         .lte('Date', endDate);
@@ -20,8 +20,8 @@ const fetchTuitionZWG = async ({ queryKey }) => {
     // Fetch credit data
     const { data: creditData, error: creditError } = await supabase
         .from('OutgoingBankTransactions')
-        .select('Date, id, AmountZWG, Category')
-        .eq('Account', 'zb')
+        .select('Date, id, Amount, Category')
+        .eq('Bank', 'zb')
         .eq('Currency', 'zwg')
         .gte('Date', startDate)
         .lte('Date', endDate);

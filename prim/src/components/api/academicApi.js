@@ -4,9 +4,9 @@ import supabase from '../../db/SupaBaseConfig';
 export const fetchStudentGrades = async (studentId, { limit } = {}) => {
     let query = supabase
         .from('Grades')
-        .select('*')
+        .select('*, Terms(term), subjects(name)')
         .eq('StudentID', studentId)
-        .order('Term', { ascending: false });
+        .order('TermID', { ascending: false });
     if (limit) query = query.limit(limit);
     const { data, error } = await query;
     if (error) throw error;

@@ -1,214 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { fetchFees, fetchCommissions } from '../../api/viewPaymentsApi';
-import Card from '../../ui/card';
-import SummaryCard from '../../ui/summaryCard';
-import ReportCard from '../../ui/reportCard';
-import DataTable from '../../ui/dataTable';
+import { fetchFees, fetchCBZIncoming, fetchCBZOutgoing, fetchZBIncoming, fetchZBOutgoing } from '../../api/viewPaymentsApi';
 import Loader from '../../ui/loader';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
+import FeeReportPanel from './feeReportPanel';
+import supabase from '../../../db/SupaBaseConfig';
+import AIReportPanel from './AIReportPanel';
+import {generateFeeReportWithAI, generateCashflowReportWithAI } from '../../../db/firebaseConfig';
 
 const DailyReport = () => {
-    const [levyUsdTransactions, setLevyUsdTransactions] = useState([]);
-    const [levyZwgTransactions, setLevyZwgTransactions] = useState([]);
-    const [tuitionUsdTransactions, setTuitionUsdTransactions] = useState([]);
-    const [tuitionZwgTransactions, setTuitionZwgTransactions] = useState([]);
-    const [commissionIn, setCommissionIn] = useState([]);
-    const [commissionOut, setCommissionOut] = useState([]);
+    const [feePayments, setFeePayments] = useState([]);
+    const [incoming, setIncoming] = useState([]);
+    const [outgoing, setOutgoing] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [aiReport, setAiReport] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState('');
+    const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
 
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
 
     useEffect(() => {
-        fetchDailyTransactions();
+        fetchAll(selectedDate);
         // eslint-disable-next-line
-    }, []);
+    }, [selectedDate]);
 
-    const fetchDailyTransactions = async () => {
+    const fetchTransactions = async (flow, date, bank) => {
+        const { data, error } = await supabase
+            .from(flow === 'incoming' ? 'IncomingBankTransactions' : 'OutgoingBankTransactions')
+            .select('*')
+            .eq('Bank', bank)
+            .eq('Date', date)
+        if (error) throw error;
+        return data;
+    };
+
+    const fetchAll = async (date) => {
         setLoading(true);
         try {
-            const today = new Date().toISOString().split('T')[0];
-
-            // Fetch all payments and commissions for today
-            const [
-                allFees,
-                allCommissions
-            ] = await Promise.all([
-                fetchFees(),
-                fetchCommissions()
+            const allFees = await fetchFees();
+            setFeePayments(allFees.filter(txn => txn.Date === date));
+            const [cbzIn, cbzOut, zbIn, zbOut] = await Promise.all([
+                fetchTransactions('incoming', date, 'cbz'),
+                fetchTransactions('outgoing', date, 'cbz'),
+                fetchTransactions('incoming', date, 'zb'),
+                fetchTransactions('outgoing', date, 'zb')
             ]);
-
-            setLevyUsdTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'levy' && txn.Currency === 'usd'));
-            setLevyZwgTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'levy' && txn.Currency === 'zwg'));
-            setTuitionUsdTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'tuition' && txn.Currency === 'usd'));
-            setTuitionZwgTransactions(allFees.filter(txn => txn.Date === today && txn.Type === 'tuition' && txn.Currency === 'zwg'));
-            setCommissionIn(allCommissions.filter(txn => txn.Date === today && txn.flow === 'in'));
-            setCommissionOut(allCommissions.filter(txn => txn.Date === today && txn.flow === 'out'));
-
+            setIncoming([...cbzIn, ...zbIn]);
+            setOutgoing([...cbzOut, ...zbOut]);
             setLoading(false);
         } catch (error) {
-            addToast('Error fetching daily transactions.', 'error');
+            addToast('Error fetching daily data.', 'error');
             setLoading(false);
         }
     };
 
-    // Calculate totals
-    const sumAmount = arr => arr.reduce((sum, txn) => sum + (txn.Amount || 0), 0);
-    const sumUSD = arr => arr.reduce((sum, txn) => sum + (txn.USD_equivalent || 0), 0);
+    // Adapter for AIReportPanel (cashflow)
+    const handleGenerateCashflowReport = async ({ periodLabel, data }) => {
+        const { incoming, outgoing } = data;
+        return await generateCashflowReportWithAI({ periodLabel, periodType: 'day', incoming, outgoing });
+    };
 
-    const commissionInTotal = sumAmount(commissionIn);
-    const commissionOutTotal = sumAmount(commissionOut);
-    const levyUsdTotal = sumAmount(levyUsdTransactions);
-    const levyZwgTotal = sumAmount(levyZwgTransactions);
-    const levyZwgUsdEq = sumUSD(levyZwgTransactions);
-    const tuitionUsdTotal = sumAmount(tuitionUsdTransactions);
-    const tuitionZwgTotal = sumAmount(tuitionZwgTransactions);
-    const tuitionZwgUsdEq = sumUSD(tuitionZwgTransactions);
-
-    // Table columns
-    const columns = [
-        { header: 'ID', accessor: 'id' },
-        { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
-        { header: 'Student', render: row => row.Students ? `${row.Students.FirstNames} ${row.Students.Surname}` : '-' },
-        { header: 'Type', accessor: 'Type' },
-        { header: 'Currency', accessor: 'Currency' },
-        { header: 'Amount', render: row => `$${Number(row.Amount).toFixed(2)}` },
-        { header: 'USD Equivalent', render: row => row.USD_equivalent ? `$${Number(row.USD_equivalent).toFixed(2)}` : '-' },
-        { header: 'Reference', accessor: 'reference' },
-        { header: 'Description', accessor: 'Description' },
-    ];
-
-    const commissionColumns = [
-        { header: 'ID', accessor: 'id' },
-        { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
-        { header: 'Payee', accessor: 'Payee' },
-        { header: 'Amount', render: row => `$${Number(row.Amount).toFixed(2)}` },
-        { header: 'Description', accessor: 'Description' },
-    ];
+    // Adapter for FeeReportPanel
+    const handleGenerateFeeReport = async ({ periodLabel, data }) => {
+        return await generateFeeReportWithAI({ periodLabel, periodType: 'day', feePayments: data });
+    };
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background?.default }}>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}>
                 <Loader type="card" count={2} />
             </div>
         );
     }
 
     return (
-        <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                <SummaryCard title="Commission In" icon={null} bgColor="bg-green-100">
-                    <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${commissionInTotal.toFixed(2)}</p>
-                </SummaryCard>
-                <SummaryCard title="Commission Out" icon={null} bgColor="bg-red-100">
-                    <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${commissionOutTotal.toFixed(2)}</p>
-                </SummaryCard>
-                <SummaryCard title="Levy USD" icon={null} bgColor="bg-blue-100">
-                    <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${levyUsdTotal.toFixed(2)}</p>
-                </SummaryCard>
-                <SummaryCard title="Levy ZWG" icon={null} bgColor="bg-yellow-100">
-                    <p className="text-sm" style={{ color: currentTheme.text.primary }}>ZWG: ${levyZwgTotal.toFixed(2)}</p>
-                    <p className="text-sm" style={{ color: currentTheme.text.primary }}>USD Eq: ${levyZwgUsdEq.toFixed(2)}</p>
-                </SummaryCard>
-                <SummaryCard title="Tuition USD" icon={null} bgColor="bg-purple-100">
-                    <p className="text-xl font-semibold" style={{ color: currentTheme.text.primary }}>${tuitionUsdTotal.toFixed(2)}</p>
-                </SummaryCard>
-                <SummaryCard title="Tuition ZWG" icon={null} bgColor="bg-indigo-100">
-                    <p className="text-sm" style={{ color: currentTheme.text.primary }}>ZWG: ${tuitionZwgTotal.toFixed(2)}</p>
-                    <p className="text-sm" style={{ color: currentTheme.text.primary }}>USD Eq: ${tuitionZwgUsdEq.toFixed(2)}</p>
-                </SummaryCard>
-            </div>
-
-            {/* Detailed Tables */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <ReportCard
-                    title="Levy USD"
-                    data={{ USD: levyUsdTotal }}
-                    variant="default"
-                />
-                <ReportCard
-                    title="Levy ZWG"
-                    data={{ ZWG: levyZwgTotal, USD: levyZwgUsdEq }}
-                    variant="default"
-                />
-                <ReportCard
-                    title="Tuition USD"
-                    data={{ USD: tuitionUsdTotal }}
-                    variant="default"
-                />
-                <ReportCard
-                    title="Tuition ZWG"
-                    data={{ ZWG: tuitionZwgTotal, USD: tuitionZwgUsdEq }}
-                    variant="default"
+        <div className="min-h-screen px-4 py-8" style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}>
+            <div className="mb-6 flex gap-4 items-center">
+                <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={e => setSelectedDate(e.target.value)}
+                    className="px-2 py-1 border rounded mr-4"
+                    style={{ color: currentTheme.text?.primary, background: currentTheme.background?.paper }}
                 />
             </div>
-
-            {/* Data Tables, one per row */}
-            <div className="flex flex-col gap-8">
-                <Card title="Levy USD Transactions" className="w-full" variant="secondary">
-                    <DataTable
-                        columns={columns}
-                        data={levyUsdTransactions}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={levyUsdTransactions.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
-                <Card title="Levy ZWG Transactions" className="w-full" variant="secondary">
-                    <DataTable
-                        columns={columns}
-                        data={levyZwgTransactions}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={levyZwgTransactions.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
-                <Card title="Tuition USD Transactions" className="w-full" variant="secondary">
-                    <DataTable
-                        columns={columns}
-                        data={tuitionUsdTransactions}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={tuitionUsdTransactions.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
-                <Card title="Tuition ZWG Transactions" className="w-full" variant="secondary">
-                    <DataTable
-                        columns={columns}
-                        data={tuitionZwgTransactions}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={tuitionZwgTransactions.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
-                <Card title="Commission In" className='w-full' variant="secondary">
-                    <DataTable
-                        columns={commissionColumns}
-                        data={commissionIn}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={commissionIn.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
-                <Card title="Commission Out" className='w-full' variant="secondary">
-                    <DataTable
-                        columns={commissionColumns}
-                        data={commissionOut}
-                        currentPage={1}
-                        totalPages={1}
-                        itemsPerPage={commissionOut.length}
-                        onPageChange={() => { }}
-                    />
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FeeReportPanel selectedDate={selectedDate} feePayments={feePayments} generateReport={handleGenerateFeeReport} />
+                <AIReportPanel
+                    title="Cashflow Report"
+                    prompt="Summarize the cashflow for the selected date."
+                    data={{ incoming, outgoing }}
+                    periodLabel={selectedDate}
+                    generateReport={handleGenerateCashflowReport}
+                    description="AI-generated summary of all incoming and outgoing bank transactions for the selected date."
+                />
             </div>
-        </>
+        </div>
     );
 };
 
