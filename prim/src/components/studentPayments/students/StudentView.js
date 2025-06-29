@@ -10,6 +10,12 @@ import DataTable from '../../ui/dataTable';
 import Button from '../../ui/button';
 import TopBar from '../../ui/topbar';
 import Card from '../../ui/card';
+import FormModal from '../../ui/FormModal';
+import StudentUpdate from './student_update';
+import NewLevyUSD from '../levy/newLevyUSD';
+import NewLevyZWG from '../levy/newLevyZWG';
+import NewTuitionUSD from '../tuition/newTuitionUSD';
+import NewTuitionZWG from '../tuition/newTuitionZWG';
 
 const StudentView = () => {
     const { studentId } = useParams();
@@ -17,22 +23,17 @@ const StudentView = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState('');
-    const [userRole, setUserRole] = useState('');
     const [showAddMenu, setShowAddMenu] = useState(false);
+    const [modalType, setModalType] = useState(null); // null | 'update' | 'levyUSD' | 'levyZWG' | 'tuitionUSD' | 'tuitionZWG'
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
 
-    // Fetch student, payments, and user info
+    // Fetch student and payments only (user info not needed for parent)
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch user info
-                const user = await fetchUser(['admin', 'bursar']);
-                setUserName(user.name || 'User');
-                setUserRole(user.role);
-
                 // Fetch student info
                 const { data: studentData, error: studentError } = await supabase
                     .from('Students')
@@ -103,10 +104,10 @@ const StudentView = () => {
 
     // Add Payment Menu
     const addPaymentOptions = [
-        { label: 'Add Levy USD', onClick: () => navigate(`/newLevyUSD/${studentId}`) },
-        { label: 'Add Levy ZWG', onClick: () => navigate(`/newLevyZWG/${studentId}`) },
-        { label: 'Add Tuition USD', onClick: () => navigate(`/newTuitionUSD/${studentId}`) },
-        { label: 'Add Tuition ZWG', onClick: () => navigate(`/newTuitionZWG/${studentId}`) },
+        { label: 'Add Levy USD', onClick: () => setModalType('levyUSD') },
+        { label: 'Add Levy ZWG', onClick: () => setModalType('levyZWG') },
+        { label: 'Add Tuition USD', onClick: () => setModalType('tuitionUSD') },
+        { label: 'Add Tuition ZWG', onClick: () => setModalType('tuitionZWG') },
     ];
 
     // Student not found
@@ -152,24 +153,18 @@ const StudentView = () => {
                                 <p><strong>Tuition Owed:</strong> ${student.Tuition_Owing?.toFixed(2) || '0.00'}</p>
                             </div>
                             <div className="mt-6 flex flex-col gap-2">
-                                {['admin', 'bursar'].includes(userRole) && (
-                                    <>
-                                        <Button onClick={() => navigate(`/student_update/${studentId}`)} variant="primary">
-                                            Update
-                                        </Button>
-                                        <Button onClick={() => navigate(`/invoice/${studentId}`)} variant="secondary">
-                                            Invoice
-                                        </Button>
-                                    </>
-                                )}
-                                {userRole === 'admin' && (
-                                    <Button
-                                        onClick={handleDelete}
-                                        variant="danger"
-                                    >
-                                        Delete
-                                    </Button>
-                                )}
+                                <Button onClick={() => setModalType('update')} variant="primary">
+                                    Update
+                                </Button>
+                                <Button onClick={() => navigate(`/invoice/${studentId}`)} variant="secondary">
+                                    Invoice
+                                </Button>
+                                <Button
+                                    onClick={handleDelete}
+                                    variant="danger"
+                                >
+                                    Delete
+                                </Button>
                             </div>
                         </Card>
 
@@ -225,6 +220,24 @@ const StudentView = () => {
                                 />
                             </Card>
                         </div>
+                        {/* FormModal for update and payments */}
+                        <FormModal
+                            open={!!modalType}
+                            onClose={() => setModalType(null)}
+                            title={
+                                modalType === 'update' ? 'Update Student' :
+                                modalType === 'levyUSD' ? 'Add Levy USD' :
+                                modalType === 'levyZWG' ? 'Add Levy ZWG' :
+                                modalType === 'tuitionUSD' ? 'Add Tuition USD' :
+                                modalType === 'tuitionZWG' ? 'Add Tuition ZWG' : ''
+                            }
+                        >
+                            {modalType === 'update' && <StudentUpdate studentId={studentId} onSuccess={() => setModalType(null)} />}
+                            {modalType === 'levyUSD' && <NewLevyUSD studentId={studentId} onSuccess={() => setModalType(null)} />}
+                            {modalType === 'levyZWG' && <NewLevyZWG studentId={studentId} onSuccess={() => setModalType(null)} />}
+                            {modalType === 'tuitionUSD' && <NewTuitionUSD studentId={studentId} onSuccess={() => setModalType(null)} />}
+                            {modalType === 'tuitionZWG' && <NewTuitionZWG studentId={studentId} onSuccess={() => setModalType(null)} />}
+                        </FormModal>
                     </div>
                 )}
             </div>

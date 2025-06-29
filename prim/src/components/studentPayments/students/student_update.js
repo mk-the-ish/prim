@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import supabase from '../../../db/SupaBaseConfig';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { fetchUser } from '../../api/userApi';
 import Loader from '../../ui/loader';
-import TopBar from '../../ui/topbar';
 import Form from '../../ui/form';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 
-const StudentUpdate = () => {
-    const { studentId } = useParams();
-    const navigate = useNavigate();
+const StudentUpdate = ({ studentId: propStudentId, onSuccess }) => {
+    const params = useParams();
+    const studentId = propStudentId || params.studentId;
     const [student, setStudent] = useState({
         FirstNames: '',
         Surname: '',
@@ -24,19 +23,12 @@ const StudentUpdate = () => {
         Sponsor: '',
     });
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
     const { addToast } = useToast();
     const { currentTheme } = useTheme();
 
     const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
         queryFn: fetchUser,
-        onError: () => navigate('/login'),
-        onSuccess: (data) => {
-            if (!data || !['admin', 'bursar'].includes(data.role)) {
-                navigate('/unauthorised');
-            }
-        }
     });
 
     useEffect(() => {
@@ -52,7 +44,6 @@ const StudentUpdate = () => {
                 .select('*')
                 .eq('id', studentId)
                 .single();
-
             if (error) throw error;
             setStudent(data);
         } catch (error) {
@@ -62,148 +53,132 @@ const StudentUpdate = () => {
         }
     };
 
+    const mutation = useMutation({
+        mutationFn: async (updatedStudent) => {
+            const { error } = await supabase
+                .from('Students')
+                .update(updatedStudent)
+                .eq('id', studentId);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            addToast('Student details updated successfully!', 'success');
+            if (onSuccess) onSuccess();
+        },
+        onError: () => {
+            addToast('Error updating student details.', 'error');
+        }
+    });
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setStudent({ ...student, [name]: value });
     };
 
-    const handleUpdateStudent = async (e) => {
+    const handleUpdateStudent = (e) => {
         e.preventDefault();
-        setSubmitting(true);
-        try {
-            const { error } = await supabase
-                .from('Students')
-                .update(student)
-                .eq('id', studentId);
-
-            if (error) throw error;
-
-            addToast('Student details updated successfully!', 'success');
-            navigate(`/student-view/${studentId}`);
-        } catch (error) {
-            addToast('Error updating student details.', 'error');
-        } finally {
-            setSubmitting(false);
-        }
+        mutation.mutate(student);
     };
 
     if (loading || userLoading) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center"
-                style={{ background: currentTheme.background?.default }}
-            >
+            <div className="flex items-center justify-center min-h-[200px]">
                 <Loader type="card" count={1} />
             </div>
         );
     }
 
     return (
-        <div
-            className="min-h-screen"
-            style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}
-        >
-            <TopBar title="Update Student Details" userName={userData?.name} />
-            <div className="px-6">
-                <div className="container mx-auto mt-10">
-                    <Form onSubmit={handleUpdateStudent} loading={submitting} title="Edit Student">
-                        <Form.Input
-                            label="First Names"
-                            type="text"
-                            name="FirstNames"
-                            value={student.FirstNames}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <Form.Input
-                            label="Surname"
-                            type="text"
-                            name="Surname"
-                            value={student.Surname}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <Form.Select
-                            label="Gender"
-                            name="Gender"
-                            value={student.Gender}
-                            onChange={handleInputChange}
-                            required
-                            options={[
-                                { value: 'Male', label: 'Male' },
-                                { value: 'Female', label: 'Female' }
-                            ]}
-                        />
-                        <Form.Input
-                            label="Grade"
-                            type="text"
-                            name="Grade"
-                            value={student.Grade}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <Form.Input
-                            label="Class"
-                            type="text"
-                            name="Class"
-                            value={student.Class}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <Form.Input
-                            label="Contact Info"
-                            type="text"
-                            name="ContactInfo"
-                            value={student.ContactInfo}
-                            onChange={handleInputChange}
-                        />
-                        <div>
-                            <label className="block text-sm font-medium mb-1 text-left">Address</label>
-                            <textarea
-                                name="Address"
-                                value={student.Address}
-                                onChange={handleInputChange}
-                                className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2"
-                                style={{
-                                    borderColor: currentTheme.divider,
-                                    color: currentTheme.text.primary,
-                                    background: currentTheme.background.paper
-                                }}
-                                rows="3"
-                            ></textarea>
-                        </div>
-                        <Form.Input
-                            label="Date of Birth"
-                            type="date"
-                            name="DOB"
-                            value={student.DOB}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <Form.Input
-                            label="Sponsor"
-                            type="text"
-                            name="Sponsor"
-                            value={student.Sponsor}
-                            onChange={handleInputChange}
-                        />
-                        <div className="flex justify-end">
-                            <Link
-                                to={`/student-view/${studentId}`}
-                                className="mr-4 px-4 py-2 rounded"
-                                style={{
-                                    background: currentTheme.background.paper,
-                                    color: currentTheme.text.primary,
-                                    border: `1px solid ${currentTheme.divider}`
-                                }}
-                            >
-                                Back to Student
-                            </Link>
-                        </div>
-                    </Form>
-                </div>
+        <Form onSubmit={handleUpdateStudent} loading={mutation.isLoading} title="Edit Student">
+            {/* Surname, FirstNames, Contact Info, Sponsor side by side */}
+            <div className="flex flex-col md:flex-row gap-4">
+                <Form.Input
+                    label="Surname"
+                    type="text"
+                    name="Surname"
+                    value={student.Surname}
+                    onChange={handleInputChange}
+                    required
+                />
+                <Form.Input
+                    label="First Names"
+                    type="text"
+                    name="FirstNames"
+                    value={student.FirstNames}
+                    onChange={handleInputChange}
+                    required
+                />
+                <Form.Input
+                    label="Contact Info"
+                    type="text"
+                    name="ContactInfo"
+                    value={student.ContactInfo}
+                    onChange={handleInputChange}
+                />
+                <Form.Input
+                    label="Sponsor"
+                    type="text"
+                    name="Sponsor"
+                    value={student.Sponsor}
+                    onChange={handleInputChange}
+                />
             </div>
-        </div>
+            {/* Grade, Class, Gender side by side */}
+            <div className="flex flex-col md:flex-row gap-4 items-end mt-4">
+                <Form.Input
+                    label="Grade"
+                    type="text"
+                    name="Grade"
+                    value={student.Grade}
+                    onChange={handleInputChange}
+                    required
+                />
+                <Form.Input
+                    label="Class"
+                    type="text"
+                    name="Class"
+                    value={student.Class}
+                    onChange={handleInputChange}
+                    required
+                />
+                <Form.Select
+                    label="Gender"
+                    name="Gender"
+                    value={student.Gender}
+                    onChange={handleInputChange}
+                    required
+                    options={[
+                        { value: 'Male', label: 'Male' },
+                        { value: 'Female', label: 'Female' }
+                    ]}
+                />
+            </div>
+            {/* Address full width */}
+            <div className="mt-4">
+                <label className="block text-sm font-medium mb-1 text-left">Address</label>
+                <textarea
+                    name="Address"
+                    value={student.Address}
+                    onChange={handleInputChange}
+                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2"
+                    style={{
+                        borderColor: currentTheme.divider,
+                        color: currentTheme.text.primary,
+                        background: currentTheme.background.paper
+                    }}
+                    rows="3"
+                ></textarea>
+            </div>
+            {/* Date of Birth full width */}
+            <Form.Input
+                label="Date of Birth"
+                type="date"
+                name="DOB"
+                value={student.DOB}
+                onChange={handleInputChange}
+                required
+            />
+        </Form>
     );
 };
 

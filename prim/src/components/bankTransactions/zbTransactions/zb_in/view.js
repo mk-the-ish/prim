@@ -1,28 +1,54 @@
 import React, { useState } from 'react';
-import { useTheme } from '../../../../contexts/ThemeContext';
-import TIVusd from './viewUSD.js';
-import TIVzwg from './viewZWG.js';
+import ViewInUSD from './viewUSD';
+import ViewInZWG from './viewZWG';
+import ViewOutUSD from '../zb_out/viewUSD';
+import ViewOutZWG from '../zb_out/viewZWG';
 import ContextSwitch from '../../../ui/contextSwitch';
+import Button from '../../../ui/button';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
-function TIView() {
-    const [activeView, setActiveView] = useState('USD');
+function ZBView() {
+    const [direction, setDirection] = useState('incoming'); // 'incoming' or 'outgoing'
+    const [currency, setCurrency] = useState('usd'); // 'usd' or 'zwg'
     const { currentTheme } = useTheme();
 
+    let TableComponent;
+    if (direction === 'incoming') {
+        TableComponent = currency === 'usd' ? <ViewInUSD /> : <ViewInZWG />;
+    } else {
+        TableComponent = currency === 'usd' ? <ViewOutUSD /> : <ViewOutZWG />;
+    }
+
     return (
-        <div className="min-h-screen" style={{ background: currentTheme.background?.default }}>
-            <div className="flex justify-center mb-8">
+        <div style={{ background: currentTheme.background?.default, minHeight: '100vh' }}>
+            <div className="flex justify-between items-center mb-4 px-6 pt-6">
+                <div className="flex space-x-2">
+                    <Button
+                        variant={direction === 'incoming' ? 'primary' : 'secondary'}
+                        onClick={() => setDirection('incoming')}
+                    >
+                        Incoming
+                    </Button>
+                    <Button
+                        variant={direction === 'outgoing' ? 'primary' : 'secondary'}
+                        onClick={() => setDirection('outgoing')}
+                    >
+                        Outgoing
+                    </Button>
+                </div>
+                <h2 className="text-2xl font-bold">ZB Bank Transactions</h2>
                 <ContextSwitch
-                    activeTab={activeView}
-                    onTabChange={setActiveView}
-                    tabs={['USD', 'ZWG']}
+                    options={[
+                        { label: 'USD', value: 'usd' },
+                        { label: 'ZWG', value: 'zwg' }
+                    ]}
+                    value={currency}
+                    onChange={setCurrency}
                 />
             </div>
-            <div className="w-full max-w-2xl mx-auto">
-                {activeView === 'USD' && <TIVusd />}
-                {activeView === 'ZWG' && <TIVzwg />}
-            </div>
+            <div className="px-6 pb-6">{TableComponent}</div>
         </div>
     );
 }
 
-export default TIView;
+export default ZBView;

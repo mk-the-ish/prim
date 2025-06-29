@@ -8,7 +8,7 @@ import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
-const LevyZWG = () => {
+const LevyZWG = ({ onCurrencySwitch }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
@@ -64,15 +64,22 @@ const LevyZWG = () => {
     ];
 
     return (
-        <Card title="ZWL Levies" className="mb-4">
-        <DataTable
-            columns={columns}
-            data={zwgLevies}
-            currentPage={currentPage}
-            totalPages={Math.ceil(zwgLevies.length / ITEMS_PER_PAGE)}
-            onPageChange={setCurrentPage}
-            itemsPerPage={ITEMS_PER_PAGE}
-            isLoading={loading}
+        <Card title="ZWG Levies" className="mb-4" right={
+            <button
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                onClick={onCurrencySwitch}
+            >
+                USD
+            </button>
+        }>
+            <DataTable
+                columns={columns}
+                data={zwgLevies}
+                currentPage={currentPage}
+                totalPages={Math.ceil(zwgLevies.length / ITEMS_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                isLoading={loading}
             />
         </Card>
     );

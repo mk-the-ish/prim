@@ -1,22 +1,12 @@
 import supabase from './../../db/SupaBaseConfig.js';
 
 /**
- * Fetches the authenticated user and checks their role against required roles.
- * @param {Array<string>} requiredRoles - Array of roles that are allowed to access the resource.
- * @returns {Promise<Object>} The user data if authenticated and authorized.
- * @throws {Error} If not authenticated or unauthorized.
+ * Fetches the authenticated user.
+ * @returns {Promise<Object>} The user data if authenticated.
+ * @throws {Error} If not authenticated.
  */
-export const fetchUser = async (requiredRoles = ['admin', 'bursar']) => {
+export const fetchUser = async () => {
     try {
-        // Validate requiredRoles parameter
-        if (!Array.isArray(requiredRoles)) {
-            throw new Error('requiredRoles must be an array');
-        }
-
-        if (requiredRoles.length === 0) {
-            throw new Error('requiredRoles cannot be empty');
-        }
-
         // Check if Supabase client is initialized
         if (!supabase) {
             throw new Error('Database connection not initialized');
@@ -59,17 +49,12 @@ export const fetchUser = async (requiredRoles = ['admin', 'bursar']) => {
             throw new Error('User data not found');
         }
 
-        if (!requiredRoles.includes(data.role)) {
-            throw new Error(`Unauthorized role: ${data.role}. Required roles: ${requiredRoles.join(', ')}`);
-        }
-
         return data;
 
     } catch (error) {
         // Log error for debugging
         console.error('User API Error:', {
             message: error.message,
-            requiredRoles,
             stack: error.stack
         });
 

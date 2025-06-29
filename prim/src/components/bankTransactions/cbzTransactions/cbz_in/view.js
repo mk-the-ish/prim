@@ -1,46 +1,55 @@
 import React, { useState } from 'react';
-import LIVusd from './viewUSD.js';
-import LIVzwg from './viewZWG.js';
+import ViewInUSD from './viewUSD';
+import ViewInZWG from './viewZWG';
+import ViewOutUSD from '../cbz_out/viewUSD';
+import ViewOutZWG from '../cbz_out/viewZWG';
+import ContextSwitch from '../../../ui/contextSwitch';
+import TopBar from '../../../ui/topbar';
+import Button from '../../../ui/button';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
-function LIView() {
-    const [activeView, setActiveView] = useState('USD'); // Initial state
+function CBZView() {
+    const [direction, setDirection] = useState('incoming'); // 'incoming' or 'outgoing'
+    const [currency, setCurrency] = useState('usd'); // 'usd' or 'zwg'
+    const { currentTheme } = useTheme();
 
-    const handleViewChange = (ViewType) => {
-        setActiveView(ViewType);
-    };
+    let TableComponent;
+    if (direction === 'incoming') {
+        TableComponent = currency === 'usd' ? <ViewInUSD /> : <ViewInZWG />;
+    } else {
+        TableComponent = currency === 'usd' ? <ViewOutUSD /> : <ViewOutZWG />;
+    }
 
     return (
-            <div className="p-6 bg-gray-100 min-h-screen">
-                {/* Content Area */}
-                <div className="overflow-y-auto">
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                        <button
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: activeView === 'USD' ? 'lightblue' : 'lightgray',
-                            }}
-                            onClick={() => handleViewChange('USD')}
-                        >
-                            USD
-                        </button>
-                        <button
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: activeView === 'ZWG' ? 'lightblue' : 'lightgray',
-                            }}
-                            onClick={() => handleViewChange('ZWG')}
-                        >
-                            ZWG
-                        </button>
-                    </div>
-                    {activeView === 'USD' && <LIVusd />}
-                    {activeView === 'ZWG' && <LIVzwg />}
-                
-                    </div>
+        <div style={{ background: currentTheme.background?.default, minHeight: '100vh' }}>
+            <div className="flex justify-between items-center mb-4 px-6 pt-6">
+                <div className="flex space-x-2">
+                    <Button
+                        variant={direction === 'incoming' ? 'primary' : 'secondary'}
+                        onClick={() => setDirection('incoming')}
+                    >
+                        Incoming
+                    </Button>
+                    <Button
+                        variant={direction === 'outgoing' ? 'primary' : 'secondary'}
+                        onClick={() => setDirection('outgoing')}
+                    >
+                        Outgoing
+                    </Button>
+                </div>
+                <h2 className="text-2xl font-bold">CBZ Bank Transactions</h2>
+                <ContextSwitch
+                    options={[
+                        { label: 'USD', value: 'usd' },
+                        { label: 'ZWG', value: 'zwg' }
+                    ]}
+                    value={currency}
+                    onChange={setCurrency}
+                />
             </div>
-
-            
+            <div className="px-6 pb-6">{TableComponent}</div>
+        </div>
     );
 }
 
-export default LIView;
+export default CBZView;

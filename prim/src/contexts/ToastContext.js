@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { TransitionGroup, CSSTransition } from 'react-transition-group'; // For animations
-import { useTheme } from './ThemeContext'; // Import the useTheme hook
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { useTheme } from './ThemeContext';
 
 // Create the Toast Context
 const ToastContext = createContext();
@@ -14,11 +14,9 @@ export const useToast = () => {
     return context;
 };
 
-// Main Toast component display
-const Toast = ({ message, type, id, onDismiss }) => {
-    const { currentTheme } = useTheme(); // Use the theme context
-
-    // Dynamically determine background and text color based on theme
+// Toast component with forwardRef
+const Toast = React.forwardRef(({ message, type, id, onDismiss }, ref) => {
+    const { currentTheme } = useTheme();
     let bgColor = '';
     let textColor = currentTheme.text.contrastText || '#FFFFFF'; // Default to white if not specified
 
@@ -42,6 +40,7 @@ const Toast = ({ message, type, id, onDismiss }) => {
 
     return (
         <div
+            ref={ref}
             className={`relative p-4 mb-3 rounded-lg shadow-lg font-semibold flex items-center justify-between max-w-sm w-full`}
             style={{ backgroundColor: bgColor, color: textColor }} // Apply dynamic styles
             role="alert"
@@ -59,12 +58,13 @@ const Toast = ({ message, type, id, onDismiss }) => {
             </button>
         </div>
     );
-};
+});
 
 // Toast Provider Component
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
     const TOAST_TIMEOUT = 5000; // 5 seconds duration for toasts
+    const toastRefs = useRef({});
 
     const addToast = useCallback((message, type = 'info') => {
         const id = Date.now();
@@ -77,33 +77,40 @@ export const ToastProvider = ({ children }) => {
 
     const dismissToast = useCallback((id) => {
         setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+        delete toastRefs.current[id];
     }, []);
 
-    const value = { addToast };
+    const value = { addToast, dismissToast, clearToasts: () => setToasts([]) };
 
     return (
         <ToastContext.Provider value={value}>
             {children}
             <div className="fixed bottom-4 right-4 z-50 pointer-events-none">
                 <TransitionGroup>
-                    {toasts.map((toast) => (
-                        <CSSTransition
-                            key={toast.id}
-                            timeout={300}
-                            classNames={{
-                                enter: 'animate-slideIn',
-                                exit: 'animate-fadeOut'
-                            }}
-                        >
-                            <Toast
+                    {toasts.map((toast) => {
+                        if (!toastRefs.current[toast.id]) {
+                            toastRefs.current[toast.id] = React.createRef();
+                        }
+                        return (
+                            <CSSTransition
                                 key={toast.id}
-                                id={toast.id}
-                                message={toast.message}
-                                type={toast.type}
-                                onDismiss={dismissToast}
-                            />
-                        </CSSTransition>
-                    ))}
+                                nodeRef={toastRefs.current[toast.id]}
+                                timeout={300}
+                                classNames={{
+                                    enter: 'animate-slideIn',
+                                    exit: 'animate-fadeOut'
+                                }}
+                            >
+                                <Toast
+                                    ref={toastRefs.current[toast.id]}
+                                    id={toast.id}
+                                    message={toast.message}
+                                    type={toast.type}
+                                    onDismiss={dismissToast}
+                                />
+                            </CSSTransition>
+                        );
+                    })}
                 </TransitionGroup>
             </div>
         </ToastContext.Provider>

@@ -49,9 +49,8 @@ const Form = ({ onSubmit, loading, children, title }) => {
     const { currentTheme } = useTheme();
     return (
         <div
-            className="max-w-lg mx-auto mt-10 p-6 rounded-lg shadow-md"
+            className="max-w-lg mx-auto p-2"
             style={{
-                background: currentTheme.background?.paper,
                 color: currentTheme.text?.primary
             }}
         >

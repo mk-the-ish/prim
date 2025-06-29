@@ -4,7 +4,7 @@ import { FaUserCircle } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { fetchUser } from '../../components/api/userApi';
-import { fetchStudentsForInvoicing } from '../api/dashboardApi';
+import { fetchStudentDetails } from '../api/studentsInfoApi';
 
 const styles = StyleSheet.create({
     page: { padding: 30 },
@@ -83,7 +83,7 @@ const BulkInvoicing = () => {
 
     const { data: studentData = {}, isLoading: studentsLoading } = useQuery({
         queryKey: ['studentsInvoicing', { gradeFilter, classFilter, page }],
-        queryFn: () => fetchStudentsForInvoicing({ gradeFilter, classFilter, page, pageSize: PAGE_SIZE }),
+        queryFn: () => fetchStudentDetails({ gradeFilter, classFilter, page, pageSize: PAGE_SIZE }),
         enabled: !!userData?.role && ['admin'].includes(userData.role)
     });
 

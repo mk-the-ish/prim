@@ -1,28 +1,15 @@
 import supabase from '../../db/SupaBaseConfig.js';
 
 export const fetchStudents = async ({ gradeFilter, classFilter, genderFilter }) => {
-    // First check if user has required role
+    // Only check authentication, not role
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data: userData, error: userError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-    if (userError) throw userError;
-    if (!userData || !['admin', 'bursar'].includes(userData.role)) {
-        throw new Error('Unauthorized role');
-    }
-
-    // If role check passes, fetch students
+    // Fetch students
     let query = supabase.from('Students').select('*');
-
     if (gradeFilter) query = query.eq('Grade', gradeFilter);
     if (classFilter) query = query.eq('Class', classFilter);
     if (genderFilter) query = query.eq('Gender', genderFilter);
-
     const { data, error } = await query.order('Grade', { ascending: true });
     if (error) throw error;
     return data;
@@ -37,4 +24,20 @@ export const fetchStudentDetails = async (studentId) => {
 
     if (error) throw error;
     return data;
+};
+
+// Fetch the linked student ID(s) for the currently logged-in parent
+export const fetchLinkedStudentIdsForParent = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Get the parent user id (should match user_roles.id)
+    const parentUserId = user.id;
+    const { data, error } = await supabase
+        .from('parent_student_link')
+        .select('StudentID')
+        .eq('ParentUserID', parentUserId);
+    if (error) throw error;
+    // Return an array of student IDs (supporting multiple children)
+    return (data || []).map(link => link.StudentID);
 };

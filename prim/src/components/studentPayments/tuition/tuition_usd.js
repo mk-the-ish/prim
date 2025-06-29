@@ -8,7 +8,7 @@ import Card from '../../../components/ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
-const TuitionUSD = () => {
+const TuitionUSD = ({ onCurrencySwitch }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
@@ -64,7 +64,14 @@ const TuitionUSD = () => {
     ];
 
     return (
-        <Card title="USD Tuition Payments" className="p-4">
+        <Card title="USD Tuition Payments" className="p-4" right={
+            <button
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                onClick={onCurrencySwitch}
+            >
+                ZWG
+            </button>
+        }>
             <DataTable
                 columns={columns}
                 data={usdTuitions}

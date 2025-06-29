@@ -8,7 +8,7 @@ import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
-const TuitionZWG = () => {
+const TuitionZWG = ({ onCurrencySwitch }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
@@ -69,12 +69,19 @@ const TuitionZWG = () => {
     ];
 
     return (
-        <Card title="ZWL Tuition Payments" className="p-4">
+        <Card title="ZWL Tuition Payments" className="p-4" right={
+            <button
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                onClick={onCurrencySwitch}
+            >
+                USD
+            </button>
+        }>
             <DataTable
                 columns={columns}
-                data={zwgTuition}
+                data={currentItems}
                 currentPage={currentPage}
-                totalPages={Math.ceil(zwgTuition.length / ITEMS_PER_PAGE)}
+                totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 itemsPerPage={ITEMS_PER_PAGE}
                 isLoading={loading}

@@ -23,9 +23,9 @@ const Card = ({
             style={{ background: variants[variant] }}
         >
             {title && (
-                <div className="px-6 py-4 flex justify-between items-center">
+                <div className="px-6 py-3 flex justify-between items-center">
                     <h3
-                        className="text-xl font-bold"
+                        className="text-2xl font-bold"
                         style={{ color: currentTheme.text?.primary }}
                     >
                         {title}
@@ -33,7 +33,7 @@ const Card = ({
                     {headerAction && <div>{headerAction}</div>}
                 </div>
             )}
-            <div className="p-6">
+            <div className="p-2">
                 {children}
             </div>
         </div>

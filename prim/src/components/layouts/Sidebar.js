@@ -9,8 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 const navLinks = [
   { to: '/dashboard', icon: <FaPager />, label: 'Dashboard' },
   { to: '/students', icon: <FaUserGraduate />, label: 'Students' },
-  { to: '/levy', icon: <FaMoneyBill />, label: 'Levy' },
-  { to: '/tuition', icon: <FaWallet />, label: 'Tuition' },
+  { to: '/fees', icon: <FaMoneyBill />, label: 'Fees' },
   { to: '/commission', icon: <FaDonate />, label: 'Commission' },
   { to: '/reports', icon: <FaChartBar />, label: 'Reports' },
 ];

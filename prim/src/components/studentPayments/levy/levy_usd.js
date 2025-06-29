@@ -8,7 +8,7 @@ import Card from '../../ui/card';
 
 const ITEMS_PER_PAGE = 10;
 
-const LevyUSD = () => {
+const LevyUSD = ({ onCurrencySwitch }) => {
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -62,15 +62,22 @@ const LevyUSD = () => {
     ];
 
     return (
-        <Card title="USD Levies" className="mb-4">
-        <DataTable
-            columns={columns}
-            data={usdLevies}
-            currentPage={currentPage}
-            totalPages={Math.ceil(usdLevies.length / ITEMS_PER_PAGE)}
-            onPageChange={setCurrentPage}
-            itemsPerPage={ITEMS_PER_PAGE}
-            isLoading={userLoading || leviesLoading}
+        <Card title="USD Levies" className="mb-4" right={
+            <button
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                onClick={onCurrencySwitch}
+            >
+                ZWG
+            </button>
+        }>
+            <DataTable
+                columns={columns}
+                data={usdLevies}
+                currentPage={currentPage}
+                totalPages={Math.ceil(usdLevies.length / ITEMS_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                isLoading={userLoading || leviesLoading}
             />
         </Card>
     );

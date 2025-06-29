@@ -8,35 +8,29 @@ import Signup from './auth/signup.js';
 import ForgotPassword from './auth/forgotPassword.js';
 import Sidebar from './layouts/Sidebar.js';
 import Students from './studentPayments/students/students.js';
-import NewStudent from './studentPayments/students/NewStudent.js';
-import Levy from './studentPayments/levy/levy.js';
+import { Fees } from './studentPayments/levy/fees.js';
 import StudentView from './studentPayments/students/StudentView.js';
-import Tuition from './studentPayments/tuition/tuition.js';
 import NewCommIn from './cashTransactions/commission/in/commIN.js';
 import NewCommOut from './cashTransactions/commission/out/commOUT.js';
 import Commission from './cashTransactions/commission/commission.js';
-import StudentUpdate from './studentPayments/students/student_update.js';
-import NewLevyUSD from './studentPayments/levy/newLevyUSD.js';
-import NewLevyZWG from './studentPayments/levy/newLevyZWG.js';
-import NewTuitionUSD from './studentPayments/tuition/newTuitionUSD.js';
-import NewTuitionZWG from './studentPayments/tuition/newTuitionZWG.js';
 import Financials from './layouts/financialsTopbar.js';
 import Report from './studentPayments/reports/report.js';
 import Invoice from './studentPayments/reports/invoice.js';
-import AdminDashboard from './dashboard/dashboard.js';
 import BulkInvoicing from './dashboard/bulkInvoicing.js';
 import TopBar from './layouts/TransactionsTopbar.js';
 import CreateInvoice from './bankTransactions/purchasesInvoices/createInvoice.js';
 import UpdateInvoice from './bankTransactions/purchasesInvoices/updateInvoice.js';
-import LOusd from './bankTransactions/cbzTransactions/cbz_out/usd.js';
-import NewPC from './cashTransactions/pettyCash/newPC.js';
 import Profile from './profile/profile.js';
 import Unauthorised from './auth/unauthorised.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AppThemeProvider } from '../contexts/ThemeContext.js'
 import { ToastProvider } from '../contexts/ToastContext.js';
-
+import AdminDashboard from './dashboard/AdminDashboard';
+import TeacherDashboard from './dashboard/TeacherDashboard';
+import ParentDashboard from './dashboard/ParentDashboard';
+import BursarDashboard from './dashboard/BursarDashboard';
+import { useUserRole } from './../contexts/useUserRole.js'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,77 +42,68 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppContent() {
+  const { user, role, isLoading } = useUserRole();
 
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen dark:bg-gray-900 text-white">Loading application...</div>;
+  }
 
-function App() {
+  if (!user) {
+    return <Login />;
+  }
+
+  switch (role) {
+    case 'administrator': return <AdminDashboard />;
+    case 'teacher': return <TeacherDashboard />;
+    case 'parent': return <ParentDashboard />;
+    case 'bursar': return <BursarDashboard />;
+    default: return <div>Unknown role</div>;
+  }
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Auth Routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><AppContent /></Sidebar></ProtectedRoute>} />
+      <Route path="/bulk-invoicing" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><BulkInvoicing /></Sidebar></ProtectedRoute>} />
+      <Route path="/students" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher']}><Sidebar><Students /></Sidebar></ProtectedRoute>} />
+      <Route path="/student-view/:studentId" element={<ProtectedRoute allowedRoles={['parent', 'bursar', 'teacher']}><Sidebar><StudentView /></Sidebar></ProtectedRoute>} />
+      <Route path="/fees" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Fees /></Sidebar></ProtectedRoute>} />
+      <Route path="/commission" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><Commission /></Sidebar></ProtectedRoute>} />
+      <Route path="/newCommIn" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommIn /></Sidebar></ProtectedRoute>} />
+      <Route path="/newCommOut" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommOut /></Sidebar></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><TopBar /></Sidebar></ProtectedRoute>} />
+      <Route path="/create-invoice" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><CreateInvoice /></Sidebar></ProtectedRoute>} />
+      <Route path="/update-invoice/:id" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><UpdateInvoice /></Sidebar></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Report /></Sidebar></ProtectedRoute>} />
+      <Route path="/invoice/:studentId" element={<ProtectedRoute allowedRoles={['teacher', 'bursar', 'parent']}><Sidebar><Invoice /></Sidebar></ProtectedRoute>} />
+      <Route path="/financials" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Financials /></Sidebar></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><Profile /></Sidebar></ProtectedRoute>} />
+      <Route path="*" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><h1> 404 - Not Found</h1></Sidebar></ProtectedRoute>} />
+    </Routes>
+  );
+}
+
+function AppWrapper() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
         <ToastProvider>
-        <AuthProvider>
-          <div className='App'>
-            <Routes>
-              {/* Auth Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-
-              <Route path="/" element={<Login />} />
-
-              <Route path="/dashboard" element={<ProtectedRoute><Sidebar><AdminDashboard /></Sidebar></ProtectedRoute>} />
-              <Route path="/bulk-invoicing" element={<ProtectedRoute><Sidebar><BulkInvoicing /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/students" element={<ProtectedRoute><Sidebar><Students /></Sidebar></ProtectedRoute>} />
-              <Route path="/new-student" element={<ProtectedRoute><Sidebar><NewStudent /></Sidebar></ProtectedRoute>} />
-              <Route path="/student-view/:studentId" element={<ProtectedRoute><Sidebar><StudentView /></Sidebar></ProtectedRoute>} />
-              <Route path="/student_update/:studentId" element={<ProtectedRoute><Sidebar><StudentUpdate /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/levy" element={<ProtectedRoute><Sidebar><Levy /></Sidebar></ProtectedRoute>} />
-              <Route path="/newLevyUSD/:studentId" element={<ProtectedRoute><Sidebar><NewLevyUSD /></Sidebar></ProtectedRoute>} />
-              <Route path="/newLevyZWG/:studentId" element={<ProtectedRoute><Sidebar><NewLevyZWG /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/tuition" element={<ProtectedRoute><Sidebar><Tuition /></Sidebar></ProtectedRoute>} />
-              <Route path="/newTuitionUSD/:studentId" element={<ProtectedRoute><Sidebar><NewTuitionUSD /></Sidebar></ProtectedRoute>} />
-              <Route path="/newTuitionZWG/:studentId" element={<ProtectedRoute><Sidebar><NewTuitionZWG /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/commission" element={<ProtectedRoute><Sidebar><Commission /></Sidebar></ProtectedRoute>} />
-              <Route path="/newCommIn" element={<ProtectedRoute><Sidebar><NewCommIn /></Sidebar></ProtectedRoute>} />
-              <Route path="/newCommOut" element={<ProtectedRoute><Sidebar><NewCommOut /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/transactions" element={<ProtectedRoute><Sidebar><TopBar /></Sidebar></ProtectedRoute>} />
-              <Route path="/transactions/levyOut" element={<ProtectedRoute><Sidebar><LOusd /></Sidebar></ProtectedRoute>} />
-              <Route path="/transactions/petty-cash" element={<ProtectedRoute><Sidebar><NewPC /></Sidebar></ProtectedRoute>} />
-              <Route path="/create-invoice" element={<ProtectedRoute><Sidebar><CreateInvoice /></Sidebar></ProtectedRoute>} />
-              <Route path="/update-invoice/:id" element={<ProtectedRoute><Sidebar><UpdateInvoice /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/reports" element={<ProtectedRoute><Sidebar><Report /></Sidebar></ProtectedRoute>} />
-              <Route path="/invoice/:studentId" element={<ProtectedRoute><Sidebar><Invoice /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/financials" element={<ProtectedRoute><Sidebar><Financials /></Sidebar></ProtectedRoute>} />
-
-              <Route path="/profile" element={<ProtectedRoute><Sidebar><Profile /></Sidebar></ProtectedRoute>} />
-
-              <Route path="*" element={<ProtectedRoute><Sidebar><h1> 404 - Not Found</h1></Sidebar></ProtectedRoute>} />
-              <Route path="/unauthorised" element={<ProtectedRoute><Sidebar><Unauthorised /></Sidebar></ProtectedRoute>} />
-
-
-
-            </Routes>
-          </div>
+          <AuthProvider>
+            <Router>
+              <AppRoutes />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </Router>
           </AuthProvider>
-          </ToastProvider>
-        </AppThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+        </ToastProvider>
+      </AppThemeProvider>
     </QueryClientProvider>
-  );
-}
-
-
-function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
   );
 }
 
