@@ -57,9 +57,9 @@ const CashbookLevyZWG = () => {
             totals[category] = 0;
         });
         data.forEach((entry) => {
-            totals.Amount += entry.Amount || 0;
+            totals.Amount += entry.Amount !== undefined ? entry.Amount : 0;
             if (entry.Category && totals[entry.Category] !== undefined) {
-                totals[entry.Category] += entry.Amount || 0;
+                totals[entry.Category] += entry.Amount !== undefined ? entry.Amount : 0;
             }
         });
         return totals;
@@ -165,11 +165,11 @@ const CashbookLevyZWG = () => {
                                     <>
                                         <td className="px-4 py-2">{new Date(debitData[index].Date).toLocaleDateString()}</td>
                                         <td className="px-4 py-2">{debitData[index].id}</td>
-                                        <td className="px-4 py-2">${debitData[index].AmountZWG.toFixed(2)}</td>
+                                        <td className="px-4 py-2">${debitData[index].Amount !== undefined ? debitData[index].Amount.toFixed(2) : '0.00'}</td>
                                         {categories.map((category) => (
                                             <td key={category} className="px-4 py-2">
                                                 {debitData[index].Category === category
-                                                    ? `$${debitData[index].AmountZWG.toFixed(2)}`
+                                                    ? `$${debitData[index].Amount !== undefined ? debitData[index].Amount.toFixed(2) : '0.00'}`
                                                     : ''}
                                             </td>
                                         ))}
@@ -182,11 +182,11 @@ const CashbookLevyZWG = () => {
                                     <>
                                         <td className="px-4 py-2">{new Date(creditData[index].Date).toLocaleDateString()}</td>
                                         <td className="px-4 py-2">{creditData[index].id}</td>
-                                        <td className="px-4 py-2">${creditData[index].AmountZWG.toFixed(2)}</td>
+                                        <td className="px-4 py-2">${creditData[index].Amount !== undefined ? creditData[index].Amount.toFixed(2) : '0.00'}</td>
                                         {categories.map((category) => (
                                             <td key={category} className="px-4 py-2">
                                                 {creditData[index].Category === category
-                                                    ? `$${creditData[index].AmountZWG.toFixed(2)}`
+                                                    ? `$${creditData[index].Amount !== undefined ? creditData[index].Amount.toFixed(2) : '0.00'}`
                                                     : ''}
                                             </td>
                                         ))}
@@ -201,19 +201,19 @@ const CashbookLevyZWG = () => {
                             {/* Debit Totals */}
                             <td className="px-4 py-2 font-bold">Totals</td>
                             <td className="px-4 py-2"></td>
-                            <td className="px-4 py-2 font-bold">${debitTotals.AmountZWG.toFixed(2)}</td>
+                            <td className="px-4 py-2 font-bold">${debitTotals.Amount !== undefined ? debitTotals.Amount.toFixed(2) : '0.00'}</td>
                             {categories.map((category) => (
                                 <td key={category} className="px-4 py-2 font-bold">
-                                    ${debitTotals[category].toFixed(2)}
+                                    ${debitTotals[category] !== undefined ? debitTotals[category].toFixed(2) : '0.00'}
                                 </td>
                             ))}
                             {/* Credit Totals */}
                             <td className="px-4 py-2 font-bold">Totals</td>
                             <td className="px-4 py-2"></td>
-                            <td className="px-4 py-2 font-bold">${creditTotals.AmountZWG.toFixed(2)}</td>
+                            <td className="px-4 py-2 font-bold">${creditTotals.Amount !== undefined ? creditTotals.Amount.toFixed(2) : '0.00'}</td>
                             {categories.map((category) => (
                                 <td key={category} className="px-4 py-2 font-bold">
-                                    ${creditTotals[category].toFixed(2)}
+                                    ${creditTotals[category] !== undefined ? creditTotals[category].toFixed(2) : '0.00'}
                                 </td>
                             ))}
                         </tr>
