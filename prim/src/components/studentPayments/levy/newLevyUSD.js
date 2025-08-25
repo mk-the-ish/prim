@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -8,16 +9,37 @@ import Loader from '../../ui/loader';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 
-const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
+const transactionTypes = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'transfer', label: 'Transfer' },
+    { value: 'misplaced transfer', label: 'Misplaced Transfer' }
+];
+const paymentTimelines = [
+    { value: 'normal', label: 'Normal' },
+    { value: 'prepayment', label: 'Prepayment' },
+    { value: 'recovery', label: 'Recovery' }
+];
+const paymentTypes = [
+    { value: 'levy', label: 'Levy' },
+    { value: 'tuition', label: 'Tuition' }
+];
+const currencyTypes = [
+    { value: 'usd', label: 'USD' },
+    { value: 'zwg', label: 'ZWG' }
+];
+
+const PaymentForm = ({ studentId: propStudentId, onSuccess }) => {
     const params = useParams();
     const studentId = propStudentId || params.studentId;
     const [formData, setFormData] = useState({
         StudentID: studentId,
         Date: '',
         Amount: '',
-        transaction_form: '',
+        transaction_type: '',
         reference: '',
-        form: '',
+        timeline: '',
+        Type: 'levy',
+        Currency: 'usd',
     });
     const { addToast } = useToast();
     const { currentTheme } = useTheme();
@@ -25,17 +47,6 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
         queryKey: ['user'],
         queryFn: fetchUser,
     });
-
-    const transactionForms = [
-        { value: 'cash', label: 'Cash' },
-        { value: 'transfer', label: 'Transfer' },
-        { value: 'misplaced transfer', label: 'Misplaced Transfer' }
-    ];
-    const paymentTimelines = [
-        { value: 'normal', label: 'Normal' },
-        { value: 'prepayment', label: 'Prepayment' },
-        { value: 'recovery', label: 'Recovery' }
-    ];
 
     const mutation = useMutation({
         mutationFn: async (paymentRow) => {
@@ -47,29 +58,46 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
                 .maybeSingle();
             if (rateError || !rateData) throw new Error('No daily rate set for this date.');
             const rate = parseFloat(rateData.Rate);
-            const amountUSD = parseFloat(paymentRow.Amount);
-            const amountZWG = amountUSD * rate;
-            // Insert payment into Fees
-            const { error: insertError } = await supabase.from('Fees').insert([
-                { ...paymentRow, Type: 'levy', Currency: 'usd', AmountUSD: amountUSD, AmountZWG: amountZWG }
-            ]);
+            const { Date, reference, transaction_type, timeline, Type, Currency } = paymentRow;
+            const amount = parseFloat(paymentRow.Amount);
+            let amountUSD = 0, amountZWG = 0;
+            if (Currency === 'usd') {
+                amountUSD = amount;
+                amountZWG = amount * rate;
+            } else {
+                amountZWG = amount;
+                amountUSD = amount / rate;
+            }
+            const insertObj = {
+                StudentID: studentId,
+                Date: paymentRow.Date,
+                Reference: paymentRow.reference,
+                Form: transaction_type,
+                PaymentTimeline: timeline,
+                Type,
+                Currency,
+                AmountUSD: amountUSD,
+                AmountZWG: amountZWG
+            };
+            const { error: insertError } = await supabase.from('Fees').insert([insertObj]);
             if (insertError) throw insertError;
-            // Update student's Levy_Owing (decrease by USD amount)
+            // Update student's owing field
+            let owingField = Type === 'levy' ? 'Levy_Owing' : 'Tuition_Owing';
             const { data: studentData, error: fetchError } = await supabase
                 .from('Students')
-                .select('Levy_Owing')
+                .select(owingField)
                 .eq('id', studentId)
                 .single();
             if (fetchError) throw fetchError;
-            const newLevyOwing = (studentData.Levy_Owing || 0) - amountUSD;
+            const newOwing = (studentData[owingField] || 0) - amountUSD;
             const { error: updateError } = await supabase
                 .from('Students')
-                .update({ Levy_Owing: newLevyOwing })
+                .update({ [owingField]: newOwing })
                 .eq('id', studentId);
             if (updateError) throw updateError;
         },
         onSuccess: () => {
-            addToast('USD Levy payment added successfully!', 'success');
+            addToast('Payment added successfully!', 'success');
             if (onSuccess) onSuccess();
         },
         onError: (err) => {
@@ -84,12 +112,7 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        mutation.mutate({
-            ...formData,
-            Type: 'levy',
-            Currency: 'usd',
-            Amount: parseFloat(formData.Amount),
-        });
+        mutation.mutate(formData);
     };
 
     if (userLoading) {
@@ -101,7 +124,7 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
     }
 
     return (
-        <Form onSubmit={handleSubmit} loading={mutation.isLoading} title="New USD Levy Payment">
+        <Form onSubmit={handleSubmit} loading={mutation.isLoading} title="New Payment">
             <div className="flex flex-col md:flex-row gap-4">
                 <Form.Input
                     label="Date"
@@ -132,17 +155,35 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
                 <Form.Select
                     label="Transaction Type"
                     name="transaction_type"
-                    value={formData.transaction_form}
+                    value={formData.transaction_type}
                     onChange={handleInputChange}
-                    options={transactionForms}
+                    options={transactionTypes}
                     required
                 />
                 <Form.Select
                     label="Payment Timeline"
-                    name="form"
-                    value={formData.form}
+                    name="timeline"
+                    value={formData.timeline}
                     onChange={handleInputChange}
                     options={paymentTimelines}
+                    required
+                />
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+                <Form.Select
+                    label="Payment Type"
+                    name="Type"
+                    value={formData.Type}
+                    onChange={handleInputChange}
+                    options={paymentTypes}
+                    required
+                />
+                <Form.Select
+                    label="Currency"
+                    name="Currency"
+                    value={formData.Currency}
+                    onChange={handleInputChange}
+                    options={currencyTypes}
                     required
                 />
             </div>
@@ -150,4 +191,4 @@ const NewLevyUSD = ({ studentId: propStudentId, onSuccess }) => {
     );
 };
 
-export default NewLevyUSD;
+export default PaymentForm;

@@ -64,3 +64,19 @@ export const fetchUser = async () => {
         );
     }
 };
+
+/**
+ * Fetches the authenticated user's Supabase user ID.
+ * @returns {Promise<string>} The user ID if authenticated.
+ * @throws {Error} If not authenticated.
+ */
+export const fetchUserId = async () => {
+    if (!supabase) throw new Error('Database connection not initialized');
+    const userPromise = supabase.auth.getUser();
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 5000)
+    );
+    const { data: { user } } = await Promise.race([userPromise, timeoutPromise]);
+    if (!user || !user.id) throw new Error('Not authenticated');
+    return user.id;
+};

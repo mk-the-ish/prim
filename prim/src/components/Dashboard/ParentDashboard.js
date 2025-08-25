@@ -7,7 +7,6 @@ import { fetchLinkedStudentIdsForParent } from '../api/studentsInfoApi';
 import Card from '../ui/card';
 import DataTable from '../ui/dataTable';
 import Loader from '../ui/loader';
-import { render } from '@react-pdf/renderer';
 
 const ParentDashboard = () => {
     const { currentTheme } = useTheme();

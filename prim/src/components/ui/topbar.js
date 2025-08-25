@@ -28,22 +28,23 @@ const TopBar = ({ title, userName }) => {
     const { currentTheme } = useTheme();
     return (
         <div
-            className="py-4 px-6 flex items-center justify-between relative"
+            className="py-2 px-2 sm:py-4 sm:px-6 flex flex-wrap items-center justify-between relative w-full"
             style={{
                 background: currentTheme.background?.paper || '#1f2937',
-                color: currentTheme.text?.primary || '#fff'
+                color: currentTheme.text?.primary || '#fff',
+                borderBottom: `1px solid ${currentTheme.divider}`
             }}
         >
-            <div className="flex items-center min-w-[120px]">
+            <div className="flex items-center min-w-[100px] w-1/3 sm:w-auto">
                 <Link to="/profile" className="flex items-center hover:opacity-80 transition-colors duration-200">
                     <FaUserCircle className="text-lg" />
-                    <span className="ml-4">{userName || 'Profile'}</span>
+                    <span className="ml-2 sm:ml-4 text-sm sm:text-base">{userName || 'Profile'}</span>
                 </Link>
             </div>
-            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <h1 className="text-2xl font-bold text-center">{title}</h1>
+            <div className="w-full sm:w-auto flex justify-center absolute left-0 right-0 top-1/2 -translate-y-1/2 sm:static sm:transform-none">
+                <h1 className="text-lg sm:text-2xl font-bold text-center truncate">{title}</h1>
             </div>
-            <div className="flex items-center min-w-[120px] justify-end">
+            <div className="flex items-center min-w-[100px] w-1/3 sm:w-auto justify-end">
                 <ThemeToggleButton />
             </div>
         </div>

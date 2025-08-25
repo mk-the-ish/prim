@@ -12,10 +12,7 @@ import TopBar from '../../ui/topbar';
 import Card from '../../ui/card';
 import FormModal from '../../ui/FormModal';
 import StudentUpdate from './student_update';
-import NewLevyUSD from '../levy/newLevyUSD';
-import NewLevyZWG from '../levy/newLevyZWG';
-import NewTuitionUSD from '../tuition/newTuitionUSD';
-import NewTuitionZWG from '../tuition/newTuitionZWG';
+import PaymentForm from '../levy/newLevyUSD';
 
 const StudentView = () => {
     const { studentId } = useParams();
@@ -24,7 +21,7 @@ const StudentView = () => {
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState('');
     const [showAddMenu, setShowAddMenu] = useState(false);
-    const [modalType, setModalType] = useState(null); // null | 'update' | 'levyUSD' | 'levyZWG' | 'tuitionUSD' | 'tuitionZWG'
+    const [modalType, setModalType] = useState(null); // null | 'update' | 'payment'
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
@@ -97,17 +94,14 @@ const StudentView = () => {
         { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
         { header: 'Type', accessor: 'Type' },
         { header: 'Currency', accessor: 'Currency' },
-        { header: 'Amount', render: row => `$${Number(row.Amount).toFixed(2)}` },
-        { header: 'Reference', accessor: 'reference' },
-        { header: 'Description', accessor: 'Description' },
+        { header: 'Amount', render: row => `$${Number(row.AmountUSD).toFixed(2)}` },
+        { header: 'Reference', accessor: 'Reference' },
+        { header: 'Form', accessor: 'Form' },
     ];
 
     // Add Payment Menu
     const addPaymentOptions = [
-        { label: 'Add Levy USD', onClick: () => setModalType('levyUSD') },
-        { label: 'Add Levy ZWG', onClick: () => setModalType('levyZWG') },
-        { label: 'Add Tuition USD', onClick: () => setModalType('tuitionUSD') },
-        { label: 'Add Tuition ZWG', onClick: () => setModalType('tuitionZWG') },
+        { label: 'Add Payment', onClick: () => setModalType('payment') },
     ];
 
     // Student not found
@@ -175,38 +169,14 @@ const StudentView = () => {
                                 headerAction={
                                     <div className="relative">
                                         <Button
-                                            onClick={() => setShowAddMenu((v) => !v)}
+                                            onClick={() => setModalType('payment')}
                                             variant="primary"
                                             className="flex items-center"
                                         >
                                             <FaPlus className="mr-2" />
                                             Add Payment
-                                            <FaChevronDown className="ml-2" />
                                         </Button>
-                                        {showAddMenu && (
-                                            <div
-                                                className="absolute right-0 mt-2 bg-white rounded shadow-lg z-50"
-                                                style={{
-                                                    minWidth: 180,
-                                                    background: currentTheme.background?.paper,
-                                                    color: currentTheme.text?.primary
-                                                }}
-                                            >
-                                                {addPaymentOptions.map((opt, idx) => (
-                                                    <button
-                                                        key={opt.label}
-                                                        onClick={() => {
-                                                            setShowAddMenu(false);
-                                                            opt.onClick();
-                                                        }}
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                                        style={{ background: 'none', color: currentTheme.text.primary }}
-                                                    >
-                                                        {opt.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                        
                                     </div>
                                 }
                             >
@@ -224,19 +194,10 @@ const StudentView = () => {
                         <FormModal
                             open={!!modalType}
                             onClose={() => setModalType(null)}
-                            title={
-                                modalType === 'update' ? 'Update Student' :
-                                modalType === 'levyUSD' ? 'Add Levy USD' :
-                                modalType === 'levyZWG' ? 'Add Levy ZWG' :
-                                modalType === 'tuitionUSD' ? 'Add Tuition USD' :
-                                modalType === 'tuitionZWG' ? 'Add Tuition ZWG' : ''
-                            }
+                            title={modalType === 'update' ? 'Update Student' : modalType === 'payment' ? 'Add Payment' : ''}
                         >
                             {modalType === 'update' && <StudentUpdate studentId={studentId} onSuccess={() => setModalType(null)} />}
-                            {modalType === 'levyUSD' && <NewLevyUSD studentId={studentId} onSuccess={() => setModalType(null)} />}
-                            {modalType === 'levyZWG' && <NewLevyZWG studentId={studentId} onSuccess={() => setModalType(null)} />}
-                            {modalType === 'tuitionUSD' && <NewTuitionUSD studentId={studentId} onSuccess={() => setModalType(null)} />}
-                            {modalType === 'tuitionZWG' && <NewTuitionZWG studentId={studentId} onSuccess={() => setModalType(null)} />}
+                            {modalType === 'payment' && <PaymentForm studentId={studentId} onSuccess={() => setModalType(null)} />}
                         </FormModal>
                     </div>
                 )}

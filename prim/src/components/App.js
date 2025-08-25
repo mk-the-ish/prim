@@ -21,7 +21,9 @@ import TopBar from './layouts/TransactionsTopbar.js';
 import CreateInvoice from './bankTransactions/purchasesInvoices/createInvoice.js';
 import UpdateInvoice from './bankTransactions/purchasesInvoices/updateInvoice.js';
 import Profile from './profile/profile.js';
-import Unauthorised from './auth/unauthorised.js';
+import MarkSchedule from './Academic/markSchedule.js';
+import Attendance from './Academic/Attendance.js';
+import AddGrade from './Academic/AddGrade.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AppThemeProvider } from '../contexts/ThemeContext.js'
@@ -86,6 +88,9 @@ function AppRoutes() {
       <Route path="/invoice/:studentId" element={<ProtectedRoute allowedRoles={['teacher', 'bursar', 'parent']}><Sidebar><Invoice /></Sidebar></ProtectedRoute>} />
       <Route path="/financials" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Financials /></Sidebar></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><Profile /></Sidebar></ProtectedRoute>} />
+      <Route path="/mark-schedule" element={<ProtectedRoute allowedRoles={['teacher']}><Sidebar><MarkSchedule /></Sidebar></ProtectedRoute>} />
+      <Route path="/attendance" element={<ProtectedRoute allowedRoles={['teacher']}><Sidebar><Attendance /></Sidebar></ProtectedRoute>} />
+      <Route path="/add-grade/:studentId" element={<ProtectedRoute allowedRoles={['teacher']}><Sidebar><AddGrade /></Sidebar></ProtectedRoute>} />
       <Route path="*" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><h1> 404 - Not Found</h1></Sidebar></ProtectedRoute>} />
     </Routes>
   );
