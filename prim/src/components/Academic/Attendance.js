@@ -74,7 +74,7 @@ const Attendance = () => {
             const { Status, Comment } = formState[studentId];
             await supabase.from('Attendance').insert([
                 {
-                    StudentId: studentId,,
+                    StudentId: studentId,
                     Status,
                     Comment,
                     Date: date,
