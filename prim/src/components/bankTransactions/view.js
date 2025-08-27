@@ -137,15 +137,17 @@ const OutgoingIncomingView = () => {
             <TopBar title="Transactions" userName={userData?.name} />
             <div className="p-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                    <ContextSwitch
-                        options={[
-                            { label: 'Outgoing', value: 'outgoing' },
-                            { label: 'Incoming', value: 'incoming' }
-                        ]}
-                        value={context}
-                        onChange={setContext}
-                    />
+                    {/* Inline filters including context */}
                     <div className="flex gap-2 flex-wrap">
+                        {/* Context filter */}
+                        <select
+                            value={context}
+                            onChange={e => setContext(e.target.value)}
+                            className="border rounded px-2 py-1"
+                        >
+                            <option value="outgoing">Outgoing</option>
+                            <option value="incoming">Incoming</option>
+                        </select>
                         <input
                             type="date"
                             value={filters.date}
@@ -168,7 +170,7 @@ const OutgoingIncomingView = () => {
                             onChange={e => setFilters(f => ({ ...f, currency: e.target.value }))}
                             className="border rounded px-2 py-1"
                         >
-                            <option value="">All Currencies</option>
+                            <option value="">All $</option>
                             {currencyOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
