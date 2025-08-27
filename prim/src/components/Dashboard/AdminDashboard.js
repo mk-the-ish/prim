@@ -6,7 +6,7 @@ import {
     fetchDashboardStats,
     fetchStudentChartData,
     fetchCashFlowData,
-} from '../../components/api/dashboardApi';
+} from '../api/dashboardApi';
 import {
     Chart as ChartJS,
     ArcElement,
