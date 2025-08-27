@@ -16,8 +16,6 @@ import Commission from './cashTransactions/commission/commission.js';
 import Financials from './layouts/financialsTopbar.js';
 import Report from './layouts/report.js';
 import Invoice from './studentPayments/reports/invoice.js';
-import BulkInvoicing from './dashboard/bulkInvoicing.js';
-import TopBar from './layouts/TransactionsTopbar.js';
 import CreateInvoice from './bankTransactions/purchasesInvoices/createInvoice.js';
 import UpdateInvoice from './bankTransactions/purchasesInvoices/updateInvoice.js';
 import Profile from './profile/profile.js';
@@ -33,6 +31,8 @@ import TeacherDashboard from './dashboard/TeacherDashboard';
 import ParentDashboard from './dashboard/ParentDashboard';
 import BursarDashboard from './dashboard/BursarDashboard';
 import { useUserRole } from './../contexts/useUserRole.js'
+import OutgoingIncomingView from './bankTransactions/view.js';
+import BulkInvoicing from './dashboard/bulkInvoicing.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,7 +72,6 @@ function AppRoutes() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><AppContent /></Sidebar></ProtectedRoute>} />
       <Route path="/bulk-invoicing" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><BulkInvoicing /></Sidebar></ProtectedRoute>} />
       <Route path="/students" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher']}><Sidebar><Students /></Sidebar></ProtectedRoute>} />
       <Route path="/student-view/:studentId" element={<ProtectedRoute allowedRoles={['parent', 'bursar', 'teacher']}><Sidebar><StudentView /></Sidebar></ProtectedRoute>} />
@@ -81,7 +80,7 @@ function AppRoutes() {
       <Route path="/commission" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><Commission /></Sidebar></ProtectedRoute>} />
       <Route path="/newCommIn" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommIn /></Sidebar></ProtectedRoute>} />
       <Route path="/newCommOut" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommOut /></Sidebar></ProtectedRoute>} />
-      <Route path="/transactions" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><TopBar /></Sidebar></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><OutgoingIncomingView /></Sidebar></ProtectedRoute>} />
       <Route path="/create-invoice" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><CreateInvoice /></Sidebar></ProtectedRoute>} />
       <Route path="/update-invoice/:id" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><UpdateInvoice /></Sidebar></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Report /></Sidebar></ProtectedRoute>} />
