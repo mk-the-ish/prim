@@ -157,7 +157,7 @@ const Profile = () => {
                                     className="px-4 py-2 text-sm font-medium border rounded-md hover:opacity-80"
                                     style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary, borderColor: currentTheme.divider }}
                                 >
-                                    Cancel
+                                    Cancel;
                                 </button>
                                 <button
                                     type="submit"

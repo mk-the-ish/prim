@@ -46,7 +46,7 @@ const MarkSchedule = () => {
                             <tr>
                                 <th className="border px-2 py-1">Student ID</th>
                                 <th className="border px-2 py-1">Term ID</th>
-                                <th className="border px-2 py-1">EngP1</th>
+                                <th className="border px-2 py-1">EngP1;</th>
                                 <th className="border px-2 py-1">EngP2</th>
                                 <th className="border px-2 py-1">MathP1</th>
                                 <th className="border px-2 py-1">MathP2</th>

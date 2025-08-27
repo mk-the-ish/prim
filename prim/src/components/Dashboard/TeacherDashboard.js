@@ -101,7 +101,7 @@ const TeacherDashboard = () => {
             <span role="img" aria-label="Attendance">📋</span> Attendance
         </button>,
         <button key="print-class" className="w-48 flex items-center gap-2 px-4 py-2 bg-primary text-white rounded shadow hover:bg-primary/90" onClick={() => { setModalContent('print-class'); setModalOpen(true); }}>
-            <span role="img" aria-label="Print">🖨️</span> Print Class List
+            <span role="img" aria-label="Print">🖨️</span> Print Class List;
         </button>
     ];
 
