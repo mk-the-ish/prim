@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { fetchUser } from '../../api/userApi';
-import { fetchFees } from '../../api/viewPaymentsApi';
-import DataTable from '../../ui/dataTable';
-import Card from '../../ui/card';
-import TopBar from '../../ui/topbar';
+import { fetchUser } from '../api/userApi';
+import { fetchFees } from '../api/viewPaymentsApi';
+import DataTable from '../ui/dataTable';
+import Card from '../ui/card';
+import TopBar from '../ui/topbar';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -38,7 +38,7 @@ const Fees = () => {
     useEffect(() => {
         // Only fetch if not already fetched
         if (accountOptions.length === 0) {
-            import('../../../db/SupaBaseConfig').then(({ default: supabase }) => {
+            import('../../db/SupaBaseConfig').then(({ default: supabase }) => {
                 supabase
                     .from('Accounts')
                     .select('id, AccNumber, Bank, Branch, Currency')

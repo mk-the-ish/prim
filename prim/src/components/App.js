@@ -8,12 +8,9 @@ import Signup from './auth/signup.js';
 import ForgotPassword from './auth/forgotPassword.js';
 import Sidebar from './layouts/Sidebar.js';
 import Students from './studentPayments/students/students.js';
-import Fees from './studentPayments/levy/fees.js';
+import Fees from './studentPayments/fees.js';
 import StudentView from './studentPayments/students/StudentView.js';
-import NewCommIn from './cashTransactions/commission/commIN.js';
-import NewCommOut from './cashTransactions/commission/commOUT.js';
-import Commission from './cashTransactions/commission/commission.js';
-import Financials from './layouts/financialsTopbar.js';
+import Commission from './cashTransactions/commission.js';
 import Report from './layouts/report.js';
 import Invoice from './studentPayments/reports/invoice.js';
 import Profile from './profile/profile.js';
@@ -33,7 +30,8 @@ import OutgoingIncomingView from './bankTransactions/view.js';
 import BulkInvoicing from './dashboard/bulkInvoicing.js';
 import Vendors from './bankTransactions/vendors.js';
 import ViewInvoices from './bankTransactions/viewInvoices.js';
-import ViewPC from './cashTransactions/pettyCash/viewPC.js';
+import ViewPC from './cashTransactions/viewPC.js';
+import Cashbook from './financials/cashbook.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,12 +77,9 @@ function AppRoutes() {
       <Route path="/parent-dashboard/:studentId?" element={<ProtectedRoute allowedRoles={['parent']}><Sidebar><ParentDashboard /></Sidebar></ProtectedRoute>} />
       <Route path="/fees" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Fees /></Sidebar></ProtectedRoute>} />
       <Route path="/commission" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><Commission /></Sidebar></ProtectedRoute>} />
-      <Route path="/newCommIn" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommIn /></Sidebar></ProtectedRoute>} />
-      <Route path="/newCommOut" element={<ProtectedRoute allowedRoles={['bursar']}><Sidebar><NewCommOut /></Sidebar></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><OutgoingIncomingView /></Sidebar></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Report /></Sidebar></ProtectedRoute>} />
       <Route path="/invoice/:studentId" element={<ProtectedRoute allowedRoles={['teacher', 'bursar', 'parent']}><Sidebar><Invoice /></Sidebar></ProtectedRoute>} />
-      <Route path="/financials" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Financials /></Sidebar></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><Profile /></Sidebar></ProtectedRoute>} />
       <Route path="/mark-schedule" element={<ProtectedRoute allowedRoles={['teacher']}><Sidebar><MarkSchedule /></Sidebar></ProtectedRoute>} />
       <Route path="/attendance" element={<ProtectedRoute allowedRoles={['teacher']}><Sidebar><Attendance /></Sidebar></ProtectedRoute>} />
@@ -92,6 +87,7 @@ function AppRoutes() {
       <Route path="/view-invoices" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><ViewInvoices /></Sidebar></ProtectedRoute>} />
       <Route path="/vendors" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Vendors /></Sidebar></ProtectedRoute>} />
       <Route path="/view-pc" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><ViewPC /></Sidebar></ProtectedRoute>} />
+      <Route path="/cashbook" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Cashbook /></Sidebar></ProtectedRoute>} />
       <Route path="*" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><h1> 404 - Not Found</h1></Sidebar></ProtectedRoute>} />
     </Routes>
   );

@@ -12,7 +12,6 @@ import TopBar from '../../ui/topbar';
 import Card from '../../ui/card';
 import FormModal from '../../ui/FormModal';
 import StudentUpdate from './student_update';
-import PaymentForm from '../levy/newLevyUSD';
 import FeesModal from './FeesModal';
 
 const StudentView = () => {
