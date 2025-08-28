@@ -7,6 +7,8 @@ import Card from '../../ui/card';
 import Form from '../../ui/form';
 import FormModal from '../../ui/FormModal';
 import supabase from '../../../db/SupaBaseConfig';
+import TopBar from '../../ui/topbar'; 
+import { Link } from 'react-router-dom'; 
 
 const pettyCategories = [
     'Transport and Subsistence',
@@ -123,6 +125,15 @@ const ViewPC = () => {
 
     return (
         <div className="p-6" style={{ background: currentTheme.background?.default, minHeight: '100vh' }}>
+            <TopBar title="Petty Cash" />
+            <div className="mb-4">
+                <Link
+                    to="/commission"
+                    className="inline-block px-4 py-2 bg-primary text-white rounded shadow hover:bg-primary/90"
+                >
+                    Go to Commissions Page
+                </Link>
+            </div>
             <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold" style={{ color: currentTheme.primary?.main }}>Petty Cash Balance</h2>
                 <p className="text-xl font-semibold" style={{ color: currentTheme.text?.primary }}>${balance.toFixed(2)}</p>
