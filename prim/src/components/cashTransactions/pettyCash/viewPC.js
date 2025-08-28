@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -40,9 +40,19 @@ const ViewPC = () => {
         Amount: '',
         Category: 'levy',
         Reference: '',
-        Bank: 'cbz',
-        Currency: 'usd'
+        Account: '' 
     });
+    const [accountOptions, setAccountOptions] = useState([]);
+
+    // Fetch account options for CBZ modal
+    useEffect(() => {
+        supabase
+            .from('Accounts')
+            .select('id, Bank, Branch, AccNumber, Currency')
+            .then(({ data }) => {
+                if (data) setAccountOptions(data);
+            });
+    }, []);
     // Fetch transactions
     const { data: creditTransactions = [] } = useQuery({
         queryKey: ['pettyCashTransactions'],
@@ -90,24 +100,21 @@ const ViewPC = () => {
     // CBZ Out Mutation
     const cbzMutation = useMutation({
         mutationFn: async (form) => {
-            const { error } = await supabase.from('OutgoingBankTransactions').insert([
-                {
-                    Date: form.Date,
-                    Description: form.Description,
-                    To: form.To,
-                    Amount: parseFloat(form.Amount),
-                    Category: form.Category,
-                    Reference: form.Reference,
-                    Bank: 'cbz',
-                    Currency: 'usd'
-                }
-            ]);
+            const { error } = await supabase.from('OutgoingBankTransactions').insert([{
+                Date: form.Date,
+                Description: form.Description,
+                To: form.To,
+                Amount: parseFloat(form.Amount),
+                Category: form.Category,
+                Reference: form.Reference,
+                Account: form.Account ? parseInt(form.Account) : null // <-- corrected
+            }]);
             if (error) throw error;
         },
         onSuccess: () => {
             addToast('CBZ withdrawal recorded!', 'success');
             setShowCBZModal(false);
-            setCBZForm({ Date: '', Description: '', To: '', Amount: '', Category: 'levy', Reference: '', Bank: 'cbz', Currency: 'usd' });
+            setCBZForm({ Date: '', Description: '', To: '', Amount: '', Category: 'levy', Reference: '', Account: '' });
         },
         onError: () => {
             addToast('Failed to record CBZ withdrawal.', 'error');
@@ -287,6 +294,22 @@ const ViewPC = () => {
                             name="Reference"
                             value={cbzForm.Reference}
                             onChange={e => setCBZForm({ ...cbzForm, Reference: e.target.value })}
+                        />
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 mt-4">
+                        <Form.Select
+                            label="Account"
+                            name="Account" // <-- corrected
+                            value={cbzForm.Account}
+                            onChange={e => setCBZForm({ ...cbzForm, Account: e.target.value })}
+                            options={[
+                                { value: '', label: 'Select Account' },
+                                ...accountOptions.map(acc => ({
+                                    value: acc.id,
+                                    label: `${acc.Bank} - ${acc.Branch} - ${acc.AccNumber} (${acc.Currency})`
+                                }))
+                            ]}
+                            required
                         />
                     </div>
                 </Form>

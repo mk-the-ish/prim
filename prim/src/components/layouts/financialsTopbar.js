@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../api/userApi.js';
 import CSLevy from './../financials/Cashbooks/levy/levy.js';
 import CSTuition from './../financials/Cashbooks/tuition/tuition.js';
-import ViewInvoices from '../bankTransactions/purchasesInvoices/viewInvoices.js';
+import ViewInvoices from '../bankTransactions/viewInvoices.js';
 import { useTheme } from '../../contexts/ThemeContext';
 import Button from '../ui/button';
 import Loader from '../ui/loader';

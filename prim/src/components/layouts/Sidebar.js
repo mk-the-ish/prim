@@ -10,7 +10,7 @@ const navLinks = [
   { to: '/dashboard', icon: <FaPager />, label: 'Dashboard' },
   { to: '/students', icon: <FaUserGraduate />, label: 'Students' },
   { to: '/fees', icon: <FaMoneyBill />, label: 'Fees' },
-  { to: '/commission', icon: <FaDonate />, label: 'Commission' },
+  { to: '/view-pc', icon: <FaDonate />, label: 'Petty Cash' },
   { to: '/reports', icon: <FaChartBar />, label: 'Reports' },
 ];
 

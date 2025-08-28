@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import supabase from '../../../db/SupaBaseConfig';
+import supabase from '../../db/SupaBaseConfig';
 import {
     FaUtensils,
     FaBroom,
@@ -18,11 +18,11 @@ import {
     FaEdit,
     FaTrash,
 } from 'react-icons/fa';
-import Card from '../../ui/card';
-import Modal from '../../ui/modal';
-import Input from '../../ui/input';
-import Select from '../../ui/select';
-import { useToast } from '../../../contexts/ToastContext';
+import Card from '../ui/card';
+import Modal from '../ui/modal';
+import Input from '../ui/input';
+import Select from '../ui/select';
+import { useToast } from '../../contexts/ToastContext';
 
 const categoryIcons = {
     food: FaUtensils,

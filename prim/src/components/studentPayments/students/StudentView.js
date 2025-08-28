@@ -13,6 +13,7 @@ import Card from '../../ui/card';
 import FormModal from '../../ui/FormModal';
 import StudentUpdate from './student_update';
 import PaymentForm from '../levy/newLevyUSD';
+import FeesModal from './FeesModal';
 
 const StudentView = () => {
     const { studentId } = useParams();
@@ -22,6 +23,7 @@ const StudentView = () => {
     const [userName, setUserName] = useState('');
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [modalType, setModalType] = useState(null); // null | 'update' | 'payment'
+    const [showFeesModal, setShowFeesModal] = useState(false);
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
@@ -97,11 +99,12 @@ const StudentView = () => {
         { header: 'Amount', render: row => `$${Number(row.AmountUSD).toFixed(2)}` },
         { header: 'Reference', accessor: 'Reference' },
         { header: 'Form', accessor: 'Form' },
+        { header: 'Account', render: row => row.Accounts ? row.Accounts.AccNumber : row.Account || 'N/A' }
     ];
 
     // Add Payment Menu
     const addPaymentOptions = [
-        { label: 'Add Payment', onClick: () => setModalType('payment') },
+        { label: 'Add Payment', onClick: () => setShowFeesModal(true) },
     ];
 
     // Student not found
@@ -169,14 +172,13 @@ const StudentView = () => {
                                 headerAction={
                                     <div className="relative">
                                         <Button
-                                            onClick={() => setModalType('payment')}
+                                            onClick={() => setShowFeesModal(true)}
                                             variant="primary"
                                             className="flex items-center"
                                         >
                                             <FaPlus className="mr-2" />
                                             Add Payment
                                         </Button>
-                                        
                                     </div>
                                 }
                             >
@@ -190,15 +192,35 @@ const StudentView = () => {
                                 />
                             </Card>
                         </div>
-                        {/* FormModal for update and payments */}
+                        {/* FormModal for update */}
                         <FormModal
-                            open={!!modalType}
+                            open={modalType === 'update'}
                             onClose={() => setModalType(null)}
-                            title={modalType === 'update' ? 'Update Student' : modalType === 'payment' ? 'Add Payment' : ''}
+                            title="Update Student"
                         >
                             {modalType === 'update' && <StudentUpdate studentId={studentId} onSuccess={() => setModalType(null)} />}
-                            {modalType === 'payment' && <PaymentForm studentId={studentId} onSuccess={() => setModalType(null)} />}
                         </FormModal>
+                        {/* FeesModal for payments */}
+                        <FeesModal
+                            open={showFeesModal}
+                            onClose={() => setShowFeesModal(false)}
+                            studentId={studentId}
+                            onSubmit={async (feeData) => {
+                                const { error } = await supabase.from('Fees').insert([feeData]);
+                                if (error) addToast('Failed to add payment', 'error');
+                                else {
+                                    addToast('Payment added!', 'success');
+                                    setShowFeesModal(false);
+                                    // Optionally refetch payments
+                                    const { data: paymentsData } = await supabase
+                                        .from('Fees')
+                                        .select('*')
+                                        .eq('StudentID', studentId)
+                                        .order('Date', { ascending: false });
+                                    setPayments(paymentsData || []);
+                                }
+                            }}
+                        />
                     </div>
                 )}
             </div>
