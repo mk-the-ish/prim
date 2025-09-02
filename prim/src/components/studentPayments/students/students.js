@@ -27,15 +27,16 @@ const Students = () => {
     const [studentsPerPage] = useState(10);
     const [showNewStudentModal, setShowNewStudentModal] = useState(false);
     const [newStudent, setNewStudent] = useState({
-        FirstNames: '',
-        Surname: '',
-        Gender: '',
-        Grade: '',
-        Class: '',
-        ContactInfo: '',
-        Address: '',
-        DOB: '',
-        Sponsor: '',
+        firstNames: '',
+        surname: '',
+        gender: '',
+        grade: '',
+        class: '',
+        contactInfo: '',
+        address: '',
+        dob: '',
+        sponsor: '',
+        status: 'active'
     });
     const [formLoading, setFormLoading] = useState(false);
     const [showFeesModal, setShowFeesModal] = useState(false);
@@ -63,7 +64,7 @@ const Students = () => {
 
     // Fetch students data only if user is authenticated
     const { data: students = [], isLoading: studentsLoading } = useQuery({
-        queryKey: ['students', { gradeFilter, classFilter, genderFilter }],
+        queryKey: ['Students', { gradeFilter, classFilter, genderFilter }],
         queryFn: () => fetchStudents({ gradeFilter, classFilter, genderFilter }),
         enabled: !!userData?.role,
         onError: (error) => {
@@ -117,14 +118,14 @@ const Students = () => {
     };
 
     const columns = [
-        { header: 'Student ID', accessor: 'id' },
+        // { header: 'Student ID', accessor: 'id' },
         {
             header: 'Full Name',
-            render: (row) => `${row.FirstNames} ${row.Surname}`
+            render: (row) => `${row.firstNames} ${row.surname}`
         },
-        { header: 'Gender', accessor: 'Gender' },
-        { header: 'Grade', accessor: 'Grade' },
-        { header: 'Class', accessor: 'Class' },
+        { header: 'Gender', accessor: 'gender' },
+        { header: 'Grade', accessor: 'grade' },
+        { header: 'Class', accessor: 'class' },
         {
             header: 'Actions',
             render: (row) => (
@@ -151,10 +152,10 @@ const Students = () => {
     ];
 
     const filteredStudents = students.filter((student) =>
-        `${student.FirstNames} ${student.Surname}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (gradeFilter ? student.Grade === gradeFilter : true) &&
-        (classFilter ? student.Class === classFilter : true) &&
-        (genderFilter ? student.Gender === genderFilter : true)
+        `${student.firstNames} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (gradeFilter ? student.grade === gradeFilter : true) &&
+        (classFilter ? student.class === classFilter : true) &&
+        (genderFilter ? student.gender === genderFilter : true)
     );
 
     const FilterDropdown = ({ value, onChange, options, label }) => (
@@ -256,8 +257,8 @@ const Students = () => {
                             value={genderFilter}
                             onChange={setGenderFilter}
                             options={[
-                                { value: 'Male', label: 'Male' },
-                                { value: 'Female', label: 'Female' },
+                                { value: 'male', label: 'male' },
+                                { value: 'female', label: 'female' },
                             ]}
                             label="Genders"
                         />
