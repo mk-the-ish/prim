@@ -1,77 +1,82 @@
 import supabase from '../../db/SupaBaseConfig';
 
+// Fetch Fees with joined Students and Accounts info
 export const fetchFees = async () => {
     const { data, error } = await supabase
         .from('Fees')
-        .select('*, Students(FirstNames, Surname, Grade, Class, Gender)')
-        .order('Date', { ascending: false });
-
+        .select('*, Students(firstNames, surname, grade, class, gender), Accounts(bank, branch, accNumber, currency)')
+        .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
 };
 
+// Fetch commissions from Cash table where type = 'commission'
 export const fetchCommissions = async () => {
     const { data, error } = await supabase
-        .from('Commissions')
-        .select('id, Date, Payee, Amount, Description')
-        .order('Date', { ascending: false });
-
-    if (error) throw error
-    return data;
-};
-
-// Fetch incoming CBZ transactions for a given date
-export const fetchCBZIncoming = async (startDate, endDate) => {
-    const { data, error } = await supabase
-        .from('IncomingBankTransactions')
-        .select('*')
-        .eq('Bank', 'cbz')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
+        .from('Cash')
+        .select('id, date, amount, description, flow, category, recipient')
+        .eq('type', 'commission')
+        .order('date', { ascending: false });
     if (error) throw error;
     return data;
 };
 
-// Fetch outgoing CBZ transactions for a given date
-export const fetchCBZOutgoing = async (startDate, endDate) => {
-    const { data, error } = await supabase
-        .from('OutgoingBankTransactions')
-        .select('*')
-        .eq('Bank', 'cbz')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
-    if (error) throw error;
-    return data;
-};
-
-// Fetch incoming ZB transactions for a given date
-export const fetchZBIncoming = async (startDate, endDate) => {
-    const { data, error } = await supabase
-        .from('IncomingBankTransactions')
-        .select('*')
-        .eq('Bank', 'zb')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
-    if (error) throw error;
-    return data;
-};
-
-// Fetch outgoing ZB transactions for a given date
-export const fetchZBOutgoing = async (startDate, endDate) => {
-    const { data, error } = await supabase
-        .from('OutgoingBankTransactions')
-        .select('*')
-        .eq('Bank', 'zb')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
-    if (error) throw error;
-    return data;
-};
-
+// Add commission to Cash table with type = 'commission'
 export const addCommission = async (commission) => {
+    const payload = {
+        ...commission,
+        type: 'commission'
+    };
     const { data, error } = await supabase
-        .from('Commissions')
-        .insert([{ ...commission }]);
+        .from('Cash')
+        .insert([payload]);
     if (error) throw error;
     return data;
+};
+
+// Fetch petty cash transactions (Money Out)
+export const fetchCashTransactions = async () => {
+    const { data, error } = await supabase
+        .from('Cash')
+        .select('*')
+        .eq('flow', 'out')
+        .order('date', { ascending: false });
+    if (error) return [];
+    return data || [];
+};
+
+// Fetch bank transactions (Money In)
+export const fetchBankTransactions = async () => {
+    const { data, error } = await supabase
+        .from('Bank')
+        .select('*')
+        .eq('flow', 'in')
+        .order('date', { ascending: false });
+    if (error) return [];
+    return data || [];
+};
+
+// Add petty cash transaction
+export const addCashTransaction = async (payload) => {
+    const { error } = await supabase
+        .from('Cash')
+        .insert([payload]);
+    if (error) throw error;
+};
+
+// Add bank transaction
+export const addBankTransaction = async (payload) => {
+    const { error } = await supabase
+        .from('Bank')
+        .insert([payload]);
+    if (error) throw error;
+};
+
+// Fetch account options for dropdown
+export const fetchAccountOptions = async () => {
+    const { data, error } = await supabase
+        .from('Accounts')
+        .select('id, bank, branch, accNumber, currency');
+    if (error) return [];
+    return data || [];
 };

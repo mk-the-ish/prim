@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from '../api/userApi';
-import DailyReport from '../studentPayments/reports/daily';
-import MonthlyReport from '../studentPayments/reports/monthly';
-import TermlyReport from '../studentPayments/reports/termly';
-import YearlyReport from '../studentPayments/reports/yearly';
+import DailyReport from '../studentPayments/reports/daily'
 import TopBar from '../ui/topbar';
 import Loader from '../ui/loader';
 import Button from '../ui/button';
@@ -48,12 +45,6 @@ const Report = () => {
         switch (activeReport) {
             case 'daily':
                 return <DailyReport />;
-            case 'monthly':
-                return <MonthlyReport />;
-            case 'termly':
-                return <TermlyReport />;
-            case 'yearly':
-                return <YearlyReport />;
             default:
                 return <DailyReport />;
         }

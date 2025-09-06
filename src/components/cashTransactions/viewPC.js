@@ -6,9 +6,15 @@ import Button from '../ui/button';
 import Card from '../ui/card';
 import Form from '../ui/form';
 import FormModal from '../ui/FormModal';
-import supabase from '../../db/SupaBaseConfig';
-import TopBar from '../ui/topbar'; 
-import { Link } from 'react-router-dom'; 
+import TopBar from '../ui/topbar';
+import { Link } from 'react-router-dom';
+import {
+    fetchCashTransactions,
+    fetchBankTransactions,
+    addCashTransaction,
+    addBankTransaction,
+    fetchAccountOptions
+} from '../api/viewPaymentsApi';
 
 const pettyCategories = [
     'Transport and Subsistence',
@@ -19,189 +25,208 @@ const pettyCategories = [
     'Others'
 ];
 
-const cbzCategories = [
-     'petty cash'
+const bankCategories = [
+    'petty cash',
+    'levy',
+    'tuition',
+    'exam',
+    'other'
 ];
+
+const tableHeaderClass = "px-4 py-2 bg-gray-100 text-gray-700 font-semibold border-b";
+const tableCellClass = "px-4 py-2 border-b";
 
 const ViewPC = () => {
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
     const [showPettyModal, setShowPettyModal] = useState(false);
-    const [showCBZModal, setShowCBZModal] = useState(false);
+    const [showBankModal, setShowBankModal] = useState(false);
     const [pettyForm, setPettyForm] = useState({
-        Date: '',
-        Recepient: '',
-        Description: '',
-        Category: '',
-        Amount: ''
+        date: '',
+        recipient: '',
+        description: '',
+        category: '',
+        amount: ''
     });
-    const [cbzForm, setCBZForm] = useState({
-        Date: '',
-        Description: '',
-        To: '',
-        Amount: '',
-        Category: 'levy',
-        Reference: '',
-        Account: '' 
+    const [bankForm, setBankForm] = useState({
+        date: '',
+        description: '',
+        to: '',
+        amount: '',
+        category: 'petty cash',
+        reference: '',
+        accountId: '',
     });
     const [accountOptions, setAccountOptions] = useState([]);
 
-    // Fetch account options for CBZ modal
+    // Fetch account and bank options for modal dropdowns
     useEffect(() => {
-        supabase
-            .from('Accounts')
-            .select('id, Bank, Branch, AccNumber, Currency')
-            .then(({ data }) => {
-                if (data) setAccountOptions(data);
-            });
+        fetchAccountOptions().then(data => setAccountOptions(data || []));
     }, []);
-    // Fetch transactions
-    const { data: creditTransactions = [] } = useQuery({
-        queryKey: ['pettyCashTransactions'],
-        queryFn: async () => {
-            let { data, error } = await supabase.from('PettyCash').select('*').order('Date', { ascending: false });
-            if (error) return [];
-            return data || [];
-        }
+
+    // Fetch petty cash transactions (Money Out)
+    const { data: cashTransactions = [], refetch: refetchCash } = useQuery({
+        queryKey: ['cashTransactions'],
+        queryFn: fetchCashTransactions
     });
-    const { data: debitTransactions = [] } = useQuery({
-        queryKey: ['cbzPettyCashTransactions'],
-        queryFn: async () => {
-            let { data, error } = await supabase.from('OutgoingBankTransactions').select('*').eq('Bank', 'cbz').eq('Currency', 'usd').eq('Category', 'petty cash').order('Date', { ascending: false });
-            if (error) return [];
-            return data || [];
-        }
+
+    // Fetch bank transactions (Money In)
+    const { data: bankTransactions = [], refetch: refetchBank } = useQuery({
+        queryKey: ['bankTransactions'],
+        queryFn: fetchBankTransactions
     });
-    const totalDebit = debitTransactions.reduce((sum, tx) => sum + Number(tx.Amount), 0);
-    const totalCredit = creditTransactions.reduce((sum, tx) => sum + Number(tx.Amount || tx.amount), 0);
-    const balance = totalDebit - totalCredit;
+
+    const totalBankIn = bankTransactions.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const totalCashOut = cashTransactions.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const balance = totalBankIn - totalCashOut;
 
     // Petty Cash Mutation
     const pettyMutation = useMutation({
         mutationFn: async (form) => {
-            const { error } = await supabase.from('PettyCash').insert([
-                {
-                    Date: form.Date,
-                    Recepient: form.Recepient,
-                    Description: form.Description,
-                    Category: form.Category,
-                    Amount: parseFloat(form.Amount)
-                }
-            ]);
-            if (error) throw error;
+            await addCashTransaction({
+                date: form.date,
+                recipient: form.recipient,
+                description: form.description,
+                category: form.category,
+                amount: parseFloat(form.amount),
+                flow: 'out'
+            });
         },
         onSuccess: () => {
             addToast('Petty cash transaction added!', 'success');
             setShowPettyModal(false);
-            setPettyForm({ Date: '', Recepient: '', Description: '', Category: '', Amount: '' });
+            setPettyForm({ date: '', recipient: '', description: '', category: '', amount: '' });
+            refetchCash();
         },
         onError: () => {
             addToast('Failed to add petty cash transaction.', 'error');
         }
     });
-    // CBZ Out Mutation
-    const cbzMutation = useMutation({
+
+    // Bank Transaction Mutation (Money In)
+    const bankMutation = useMutation({
         mutationFn: async (form) => {
-            const { error } = await supabase.from('OutgoingBankTransactions').insert([{
-                Date: form.Date,
-                Description: form.Description,
-                To: form.To,
-                Amount: parseFloat(form.Amount),
-                Category: form.Category,
-                Reference: form.Reference,
-                Account: form.Account ? parseInt(form.Account) : null // <-- corrected
-            }]);
-            if (error) throw error;
+            await addBankTransaction({
+                date: form.date,
+                description: form.description,
+                to: form.to,
+                amount: parseFloat(form.amount),
+                category: form.category,
+                reference: form.reference,
+                accountId: form.accountId ? parseInt(form.accountId) : null,
+                bank: form.bank,
+                flow: 'in'
+            });
         },
         onSuccess: () => {
-            addToast('CBZ withdrawal recorded!', 'success');
-            setShowCBZModal(false);
-            setCBZForm({ Date: '', Description: '', To: '', Amount: '', Category: 'levy', Reference: '', Account: '' });
+            addToast('Bank withdrawal recorded!', 'success');
+            setShowBankModal(false);
+            setBankForm({ date: '', description: '', to: '', amount: '', category: 'petty cash', reference: '', accountId: '', bank: '' });
+            refetchBank();
         },
         onError: () => {
-            addToast('Failed to record CBZ withdrawal.', 'error');
+            addToast('Failed to record bank withdrawal.', 'error');
         }
     });
 
     return (
         <div className="p-6" style={{ background: currentTheme.background?.default, minHeight: '100vh' }}>
             <TopBar title="Petty Cash" />
-            <div className="mb-4">
-                <Link
-                    to="/commission"
-                    className="inline-block px-4 py-2 bg-primary text-white rounded shadow hover:bg-primary/90"
-                >
-                    Go to Commissions Page
+            <div className="mt-6 mb-6 flex justify-start">
+                <Link to="/commission">
+                    <Button variant="primary">
+                        Go to Commissions Page
+                    </Button>
                 </Link>
             </div>
-            <div className="text-center mb-6">
+            <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold" style={{ color: currentTheme.primary?.main }}>Petty Cash Balance</h2>
                 <p className="text-xl font-semibold" style={{ color: currentTheme.text?.primary }}>${balance.toFixed(2)}</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Debit Side */}
-                <Card title="Debit (Money In)" variant="secondary">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full" style={{ background: currentTheme.background?.paper }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Bank Side (Money In) */}
+                <Card title="Bank Transactions (Money In)" variant="secondary">
+                    <div className="overflow-x-auto rounded-lg shadow">
+                        <table className="min-w-full bg-white rounded-lg">
                             <thead>
                                 <tr>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Date</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Description</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Amount</th>
+                                    <th className={tableHeaderClass}>Date</th>
+                                    <th className={tableHeaderClass}>Bank</th>
+                                    <th className={tableHeaderClass}>Description</th>
+                                    <th className={tableHeaderClass}>Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {debitTransactions.map((tx, index) => (
-                                    <tr key={index}>
-                                        <td className="border p-2">{tx.Date}</td>
-                                        <td className="border p-2">{tx.Description}</td>
-                                        <td className="border p-2">${Number(tx.Amount).toFixed(2)}</td>
+                                {bankTransactions.length === 0 ? (
+                                    <tr>
+                                        <td className={tableCellClass} colSpan={4}>
+                                            <span className="text-gray-400">No bank transactions found.</span>
+                                        </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    bankTransactions.map((tx, index) => (
+                                        <tr key={index} className="hover:bg-gray-50 transition">
+                                            <td className={tableCellClass}>{tx.date}</td>
+                                            <td className={tableCellClass}>{tx.bank}</td>
+                                            <td className={tableCellClass}>{tx.description}</td>
+                                            <td className={tableCellClass}>${Number(tx.amount).toFixed(2)}</td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
-                    <Button
-                        onClick={() => setShowCBZModal(true)}
-                        variant="primary"
-                        className="mt-4"
-                    >
-                        Withdraw From CBZ
-                    </Button>
+                    <div className="flex justify-end mt-4">
+                        <Button
+                            onClick={() => setShowBankModal(true)}
+                            variant="primary"
+                        >
+                            Withdraw From Bank
+                        </Button>
+                    </div>
                 </Card>
-                {/* Credit Side */}
-                <Card title="Credit (Money Out)" variant="secondary">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full" style={{ background: currentTheme.background?.paper }}>
+                {/* Petty Cash Side (Money Out) */}
+                <Card title="Petty Cash Transactions (Money Out)" variant="secondary">
+                    <div className="overflow-x-auto rounded-lg shadow">
+                        <table className="min-w-full bg-white rounded-lg">
                             <thead>
                                 <tr>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Date</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Recipient</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Description</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Category</th>
-                                    <th className="border p-2" style={{ color: currentTheme.text?.secondary }}>Amount</th>
+                                    <th className={tableHeaderClass}>Date</th>
+                                    <th className={tableHeaderClass}>Recipient</th>
+                                    <th className={tableHeaderClass}>Description</th>
+                                    <th className={tableHeaderClass}>Category</th>
+                                    <th className={tableHeaderClass}>Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {creditTransactions.map((tx, index) => (
-                                    <tr key={index}>
-                                        <td className="border p-2">{tx.Date || tx.date}</td>
-                                        <td className="border p-2">{tx.Recepient || tx.Receipient}</td>
-                                        <td className="border p-2">{tx.Description}</td>
-                                        <td className="border p-2">{tx.Category}</td>
-                                        <td className="border p-2">${Number(tx.Amount || tx.amount).toFixed(2)}</td>
+                                {cashTransactions.length === 0 ? (
+                                    <tr>
+                                        <td className={tableCellClass} colSpan={5}>
+                                            <span className="text-gray-400">No petty cash transactions found.</span>
+                                        </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    cashTransactions.map((tx, index) => (
+                                        <tr key={index} className="hover:bg-gray-50 transition">
+                                            <td className={tableCellClass}>{tx.date}</td>
+                                            <td className={tableCellClass}>{tx.recipient}</td>
+                                            <td className={tableCellClass}>{tx.description}</td>
+                                            <td className={tableCellClass}>{tx.category}</td>
+                                            <td className={tableCellClass}>${Number(tx.amount).toFixed(2)}</td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
-                    <Button
-                        onClick={() => setShowPettyModal(true)}
-                        variant="success"
-                        className="mt-4"
-                    >
-                        Add New Transaction
-                    </Button>
+                    <div className="flex justify-end mt-4">
+                        <Button
+                            onClick={() => setShowPettyModal(true)}
+                            variant="success"
+                        >
+                            Add New Transaction
+                        </Button>
+                    </div>
                 </Card>
             </div>
             {/* Petty Cash Modal */}
@@ -211,17 +236,17 @@ const ViewPC = () => {
                         <Form.Input
                             label="Recipient"
                             type="text"
-                            name="Recepient"
-                            value={pettyForm.Recepient}
-                            onChange={e => setPettyForm({ ...pettyForm, Recepient: e.target.value })}
+                            name="recipient"
+                            value={pettyForm.recipient}
+                            onChange={e => setPettyForm({ ...pettyForm, recipient: e.target.value })}
                             required
                         />
                         <Form.Input
                             label="Date"
                             type="date"
-                            name="Date"
-                            value={pettyForm.Date}
-                            onChange={e => setPettyForm({ ...pettyForm, Date: e.target.value })}
+                            name="date"
+                            value={pettyForm.date}
+                            onChange={e => setPettyForm({ ...pettyForm, date: e.target.value })}
                             required
                         />
                     </div>
@@ -229,48 +254,48 @@ const ViewPC = () => {
                         <Form.Input
                             label="Description"
                             type="text"
-                            name="Description"
-                            value={pettyForm.Description}
-                            onChange={e => setPettyForm({ ...pettyForm, Description: e.target.value })}
+                            name="description"
+                            value={pettyForm.description}
+                            onChange={e => setPettyForm({ ...pettyForm, description: e.target.value })}
                             required
                         />
                         <Form.Select
                             label="Category"
-                            name="Category"
-                            value={pettyForm.Category}
-                            onChange={e => setPettyForm({ ...pettyForm, Category: e.target.value })}
+                            name="category"
+                            value={pettyForm.category}
+                            onChange={e => setPettyForm({ ...pettyForm, category: e.target.value })}
                             options={pettyCategories}
                             required
                         />
                         <Form.Input
                             label="Amount"
                             type="number"
-                            name="Amount"
-                            value={pettyForm.Amount}
-                            onChange={e => setPettyForm({ ...pettyForm, Amount: e.target.value })}
+                            name="amount"
+                            value={pettyForm.amount}
+                            onChange={e => setPettyForm({ ...pettyForm, amount: e.target.value })}
                             required
                         />
                     </div>
                 </Form>
             </FormModal>
-            {/* CBZ Out Modal */}
-            <FormModal open={showCBZModal} onClose={() => setShowCBZModal(false)} title="Withdraw From CBZ">
-                <Form onSubmit={e => { e.preventDefault(); cbzMutation.mutate(cbzForm); }} loading={cbzMutation.isLoading}>
+            {/* Bank Modal */}
+            <FormModal open={showBankModal} onClose={() => setShowBankModal(false)} title="Withdraw From Bank">
+                <Form onSubmit={e => { e.preventDefault(); bankMutation.mutate(bankForm); }} loading={bankMutation.isLoading}>
                     <div className="flex flex-col md:flex-row gap-4">
                         <Form.Input
                             label="Date"
                             type="date"
-                            name="Date"
-                            value={cbzForm.Date}
-                            onChange={e => setCBZForm({ ...cbzForm, Date: e.target.value })}
+                            name="date"
+                            value={bankForm.date}
+                            onChange={e => setBankForm({ ...bankForm, date: e.target.value })}
                             required
                         />
                         <Form.Input
                             label="To"
                             type="text"
-                            name="To"
-                            value={cbzForm.To}
-                            onChange={e => setCBZForm({ ...cbzForm, To: e.target.value })}
+                            name="to"
+                            value={bankForm.to}
+                            onChange={e => setBankForm({ ...bankForm, to: e.target.value })}
                             required
                         />
                     </div>
@@ -278,46 +303,46 @@ const ViewPC = () => {
                         <Form.Input
                             label="Description"
                             type="text"
-                            name="Description"
-                            value={cbzForm.Description}
-                            onChange={e => setCBZForm({ ...cbzForm, Description: e.target.value })}
+                            name="description"
+                            value={bankForm.description}
+                            onChange={e => setBankForm({ ...bankForm, description: e.target.value })}
                             required
                         />
                         <Form.Select
                             label="Category"
-                            name="Category"
-                            value={cbzForm.Category}
-                            onChange={e => setCBZForm({ ...cbzForm, Category: e.target.value })}
-                            options={cbzCategories}
+                            name="category"
+                            value={bankForm.category}
+                            onChange={e => setBankForm({ ...bankForm, category: e.target.value })}
+                            options={bankCategories}
                             required
                         />
                         <Form.Input
                             label="Amount"
                             type="number"
-                            name="Amount"
-                            value={cbzForm.Amount}
-                            onChange={e => setCBZForm({ ...cbzForm, Amount: e.target.value })}
+                            name="amount"
+                            value={bankForm.amount}
+                            onChange={e => setBankForm({ ...bankForm, amount: e.target.value })}
                             required
                         />
                         <Form.Input
                             label="Reference"
                             type="text"
-                            name="Reference"
-                            value={cbzForm.Reference}
-                            onChange={e => setCBZForm({ ...cbzForm, Reference: e.target.value })}
+                            name="reference"
+                            value={bankForm.reference}
+                            onChange={e => setBankForm({ ...bankForm, reference: e.target.value })}
                         />
                     </div>
                     <div className="flex flex-col md:flex-row gap-4 mt-4">
                         <Form.Select
                             label="Account"
-                            name="Account" // <-- corrected
-                            value={cbzForm.Account}
-                            onChange={e => setCBZForm({ ...cbzForm, Account: e.target.value })}
+                            name="accountId"
+                            value={bankForm.accountId}
+                            onChange={e => setBankForm({ ...bankForm, accountId: e.target.value })}
                             options={[
                                 { value: '', label: 'Select Account' },
                                 ...accountOptions.map(acc => ({
                                     value: acc.id,
-                                    label: `${acc.Bank} - ${acc.Branch} - ${acc.AccNumber} (${acc.Currency})`
+                                    label: `${acc.bank} - ${acc.branch} - ${acc.accNumber} (${acc.currency})`
                                 }))
                             ]}
                             required

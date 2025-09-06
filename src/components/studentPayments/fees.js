@@ -14,21 +14,23 @@ const Fees = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({
         currency: '',
-        type: '',
+        feesType: '',
         grade: '',
         class: '',
         date: '',
-        account: ''
+        accountId: ''
     });
     const [accountOptions, setAccountOptions] = useState([]);
 
+    // Fetch user data
     const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
         queryFn: fetchUser,
         onError: () => navigate('/login')
     });
 
-    const { data: Fees = [], isLoading: feesLoading } = useQuery({
+    // Fetch fees data
+    const { data: fees = [], isLoading: feesLoading } = useQuery({
         queryKey: ['fees'],
         queryFn: fetchFees,
         enabled: !!userData?.role && ['admin', 'bursar'].includes(userData.role)
@@ -36,12 +38,11 @@ const Fees = () => {
 
     // Fetch account options for filter
     useEffect(() => {
-        // Only fetch if not already fetched
         if (accountOptions.length === 0) {
             import('../../db/SupaBaseConfig').then(({ default: supabase }) => {
                 supabase
                     .from('Accounts')
-                    .select('id, AccNumber, Bank, Branch, Currency')
+                    .select('id, accNumber, bank, branch, currency')
                     .then(({ data }) => {
                         if (data) setAccountOptions(data);
                     });
@@ -50,42 +51,52 @@ const Fees = () => {
     }, [accountOptions.length]);
 
     // Filter logic
-    const filteredFees = Fees.filter(fee => {
-        const matchesCurrency = filters.currency ? fee.Currency === filters.currency : true;
-        const matchesType = filters.type ? fee.Type === filters.type : true;
-        const matchesGrade = filters.grade ? fee.Students?.Grade === filters.grade : true;
-        const matchesClass = filters.class ? fee.Students?.Class === filters.class : true;
-        const matchesDate = filters.date ? fee.Date === filters.date : true;
-        const matchesAccount = filters.account
-            ? (fee.Accounts ? String(fee.Accounts.id) === filters.account : String(fee.Account) === filters.account)
+    const filteredFees = fees.filter(fee => {
+        const matchesCurrency = filters.currency ? fee.currency === filters.currency : true;
+        const matchesType = filters.feesType ? String(fee.feesType) === filters.feesType : true;
+        const matchesGrade = filters.grade ? fee.Students?.grade === filters.grade : true;
+        const matchesClass = filters.class ? fee.Students?.class === filters.class : true;
+        const matchesDate = filters.date ? fee.created_at?.slice(0, 10) === filters.date : true;
+        const matchesAccount = filters.accountId
+            ? String(fee.accountId) === filters.accountId
             : true;
         return matchesCurrency && matchesType && matchesGrade && matchesClass && matchesDate && matchesAccount;
     });
 
+    // Pagination
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedFees = filteredFees.slice(startIndex, endIndex);
+
     // Collect unique values for filter dropdowns
-    const currencyOptions = [...new Set(Fees.map(fee => fee.Currency))];
-    const typeOptions = [...new Set(Fees.map(fee => fee.Type))];
-    const gradeOptions = [...new Set(Fees.map(fee => fee.Students?.Grade).filter(Boolean))];
-    const classOptions = [...new Set(Fees.map(fee => fee.Students?.Class).filter(Boolean))];
+    const currencyOptions = [...new Set(fees.map(fee => fee.currency).filter(Boolean))];
+    const feesTypeOptions = [...new Set(fees.map(fee => fee.feesType).filter(Boolean))];
+    const gradeOptions = [...new Set(fees.map(fee => fee.Students?.grade).filter(Boolean))];
+    const classOptions = [...new Set(fees.map(fee => fee.Students?.class).filter(Boolean))];
 
     const columns = [
         {
             header: 'Student Name',
-            render: (row) => row.Students ? `${row.Students.FirstNames} ${row.Students.Surname}` : 'N/A'
+            render: (row) => row.Students ? `${row.Students.firstNames} ${row.Students.surname}` : 'N/A'
         },
-        { header: 'Grade', render: (row) => row.Students?.Grade || 'N/A' },
-        { header: 'Class', render: (row) => row.Students?.Class || 'N/A' },
-        { header: 'Gender', render: (row) => row.Students?.Gender || 'N/A' },
-        { header: 'Date', render: (row) => new Date(row.Date).toLocaleDateString() },
-        { header: 'Amount USD', accessor: 'AmountUSD' },
-        { header: 'Amount ZWG', accessor: 'AmountZWG' },
-        { header: 'Type', accessor: 'Type' },
-        { header: 'Payment Timeline', accessor: 'PaymentTimeline' },
-        { header: 'Form', accessor: 'Form' },
-        { header: 'Currency', accessor: 'Currency' },
-        { header: 'Reference', accessor: 'Reference' },
-        { header: 'Receipt Number', accessor: 'receipt_number' },
-        { header: 'Account', render: row => row.Accounts ? row.Accounts.AccNumber : row.Account || 'N/A' }
+        { header: 'Grade', render: (row) => row.Students?.grade || 'N/A' },
+        { header: 'Class', render: (row) => row.Students?.class || 'N/A' },
+        { header: 'Gender', render: (row) => row.Students?.gender || 'N/A' },
+        { header: 'Date', render: (row) => row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A' },
+        { header: 'Amount', accessor: 'amount', render: row => row.amount ? `$${row.amount.toFixed(2)}` : 'N/A' },
+        { header: 'Type', accessor: 'feesType' },
+        { header: 'Form', accessor: 'paymentForm' },
+        { header: 'Currency', accessor: 'currency' },
+        { header: 'Receipt Number', accessor: 'receiptNumber' },
+        {
+            header: 'Account',
+            render: row => {
+                if (row.Accounts) {
+                    return `${row.Accounts.bank} - ${row.Accounts.branch} - ${row.Accounts.accNumber} (${row.Accounts.currency})`;
+                }
+                return row.accountId || 'N/A';
+            }
+        }
     ];
 
     return (
@@ -95,14 +106,14 @@ const Fees = () => {
                 <Card title="Fees" className="mb-4">
                     <div className="flex flex-wrap gap-4 mb-4">
                         <select
-                            value={filters.account}
-                            onChange={e => setFilters(f => ({ ...f, account: e.target.value }))}
+                            value={filters.accountId}
+                            onChange={e => setFilters(f => ({ ...f, accountId: e.target.value }))}
                             className="border rounded px-2 py-1"
                         >
                             <option value="">All Accounts</option>
                             {accountOptions.map(acc => (
                                 <option key={acc.id} value={acc.id}>
-                                    {acc.Bank} - {acc.Branch} - {acc.AccNumber} ({acc.Currency})
+                                    {acc.bank} - {acc.branch} - {acc.accNumber} ({acc.currency})
                                 </option>
                             ))}
                         </select>
@@ -117,13 +128,13 @@ const Fees = () => {
                             ))}
                         </select>
                         <select
-                            value={filters.type}
-                            onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
+                            value={filters.feesType}
+                            onChange={e => setFilters(f => ({ ...f, feesType: e.target.value }))}
                             className="border rounded px-2 py-1"
                         >
                             <option value="">All Types</option>
-                            {typeOptions.map(opt => (
-                                <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
+                            {feesTypeOptions.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
                             ))}
                         </select>
                         <select
@@ -156,7 +167,7 @@ const Fees = () => {
                     </div>
                     <DataTable
                         columns={columns}
-                        data={filteredFees}
+                        data={paginatedFees}
                         currentPage={currentPage}
                         totalPages={Math.ceil(filteredFees.length / ITEMS_PER_PAGE)}
                         onPageChange={setCurrentPage}

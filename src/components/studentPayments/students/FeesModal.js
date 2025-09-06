@@ -110,8 +110,8 @@ const FeesModal = ({ open, onClose, studentId, onSubmit }) => {
                         onChange={handleChange}
                         required
                         options={[
-                            { value: 'USD', label: 'USD' },
-                            { value: 'ZWL', label: 'ZWL' },
+                            { value: 'usd', label: 'USD' },
+                            { value: 'zwg', label: 'ZWG' },
                         ]}
                     />
                     <Form.Input
