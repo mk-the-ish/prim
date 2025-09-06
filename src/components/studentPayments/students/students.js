@@ -17,7 +17,7 @@ import supabase from '../../../db/SupaBaseConfig';
 import FeesModal from './FeesModal'; 
 import NewStudent from './NewStudent';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 20;
 
 const Students = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -146,6 +146,11 @@ const Students = () => {
         (genderFilter ? student.gender === genderFilter : true)
     );
 
+    // PAGINATION: slice the filteredStudents for current page
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+
     const FilterDropdown = ({ value, onChange, options, label }) => (
         <select
             value={value}
@@ -256,7 +261,7 @@ const Students = () => {
                 <div className="overflow-x-auto">
                     <DataTable
                         columns={columns}
-                        data={filteredStudents}
+                        data={paginatedStudents} // <-- use paginatedStudents here
                         currentPage={currentPage}
                         totalPages={Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)}
                         onPageChange={setCurrentPage}
