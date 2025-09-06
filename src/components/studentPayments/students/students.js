@@ -15,6 +15,7 @@ import Form from '../../ui/form';
 import Loader from '../../ui/loader';
 import supabase from '../../../db/SupaBaseConfig';
 import FeesModal from './FeesModal'; 
+import NewStudent from './NewStudent';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -83,21 +84,6 @@ const Students = () => {
         },
         onError: () => {
             addToast('Error adding student.', 'error'); 
-        }
-    });
-
-    // Fees mutation
-    const feesMutation = useMutation({
-        mutationFn: async (feeData) => {
-            const { error } = await supabase.from('Fees').insert([feeData]);
-            if (error) throw error;
-        },
-        onSuccess: () => {
-            addToast('Fee payment added!', 'success');
-            setShowFeesModal(false);
-        },
-        onError: () => {
-            addToast('Error adding fee payment.', 'error');
         }
     });
 
@@ -184,9 +170,8 @@ const Students = () => {
         setNewStudent({ ...newStudent, [e.target.name]: e.target.value });
     };
 
-    const handleAddStudent = (e) => {
-        e.preventDefault();
-        mutation.mutate(newStudent);
+    const handleAddStudent = (studentPayload) => {
+        mutation.mutate(studentPayload);
     };
 
     return (
@@ -281,156 +266,21 @@ const Students = () => {
                     />
                 </div>
                 </Card>
-                <Modal open={showNewStudentModal} onClose={() => setShowNewStudentModal(false)}>
-                    {formLoading ? (
-                        <div className="flex items-center justify-center min-h-[200px]">
-                            <Loader type="card" count={1} />
-                        </div>
-                    ) : (
-                        <Form onSubmit={handleAddStudent} loading={mutation.isLoading} title="Student Details">
-                            {/* Surname, FirstNames, Contact Info, Sponsor side by side */}
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <Form.Input
-                                    label="Surname"
-                                    type="text"
-                                    name="Surname"
-                                    placeholder="Surname"
-                                    value={newStudent.surname}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                                <Form.Input
-                                    label="First Names"
-                                    type="text"
-                                    name="FirstNames"
-                                    placeholder="First Names"
-                                    value={newStudent.firstNames}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                                <Form.Input
-                                    label="Contact Info"
-                                    type="text"
-                                    name="ContactInfo"
-                                    placeholder="Contact Info"
-                                    value={newStudent.contactInfo}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                                <Form.Input
-                                    label="Sponsor"
-                                    type="text"
-                                    name="Sponsor"
-                                    placeholder="Sponsor"
-                                    value={newStudent.sponsor}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            {/* Grade, Class, Gender side by side */}
-                            <div className="flex flex-col md:flex-row gap-4 items-end mt-4">
-                                <Form.Select
-                                    label="Grade"
-                                    name="Grade"
-                                    value={newStudent.grade}
-                                    onChange={handleInputChange}
-                                    required
-                                    options={[
-                                        { value: 'ECD A', label: 'ECD A' },
-                                        { value: 'ECD B', label: 'ECD B' },
-                                        { value: '1', label: 'Grade 1' },
-                                        { value: '2', label: 'Grade 2' },
-                                        { value: '3', label: 'Grade 3' },
-                                        { value: '4', label: 'Grade 4' },
-                                        { value: '5', label: 'Grade 5' },
-                                        { value: '6', label: 'Grade 6' },
-                                        { value: '7', label: 'Grade 7' },
-                                    ]}
-                                />
-                                <Form.Select
-                                    label="Class"
-                                    name="Class"
-                                    value={newStudent.class}
-                                    onChange={handleInputChange}
-                                    required
-                                    options={[
-                                        { value: 'blue', label: 'Blue' },
-                                        { value: 'orange', label: 'Orange' },
-                                        { value: 'yellow', label: 'Yellow' },
-                                        { value: 'pink', label: 'Pink' },
-                                        { value: 'white', label: 'White' },
-                                        { value: 'maroon', label: 'Maroon' },
-                                        { value: 'red', label: 'Red' },
-                                        { value: 'green', label: 'Green' },
-                                        { value: 'brown', label: 'Brown' },
-                                        { value: 'purple', label: 'Purple' },
-                                    ]}
-                                />
-                                <div className="flex flex-col w-full">
-                                    <label className="block text-sm font-medium mb-1 text-left">Gender</label>
-                                    <div className="flex items-center space-x-4">
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="Gender"
-                                                value="Male"
-                                                checked={newStudent.gender === 'Male'}
-                                                onChange={handleInputChange}
-                                                className="mr-2 focus:ring-blue-500"
-                                                required
-                                            />
-                                            Male
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="Gender"
-                                                value="Female"
-                                                checked={newStudent.gender === 'Female'}
-                                                onChange={handleInputChange}
-                                                className="mr-2 focus:ring-blue-500"
-                                                required
-                                            />
-                                            Female
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Address full width */}
-                            <div className="mt-4">
-                                <label className="block text-sm font-medium mb-1 text-left">Address</label>
-                                <textarea
-                                    name="Address"
-                                    placeholder="Address"
-                                    value={newStudent.address}
-                                    onChange={handleInputChange}
-                                    className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    rows="3"
-                                    required
-                                    style={{
-                                        background: currentTheme.background?.paper,
-                                        color: currentTheme.text?.primary,
-                                        border: `1px solid ${currentTheme.divider || '#d1d5db'}`
-                                    }}
-                                ></textarea>
-                            </div>
-                            {/* Date of Birth full width */}
-                            <Form.Input
-                                label="Date of Birth"
-                                type="date"
-                                name="DOB"
-                                value={newStudent.dob}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form>
-                    )}
-                </Modal>
+                <NewStudent
+                    open={showNewStudentModal}
+                    onClose={() => setShowNewStudentModal(false)}
+                    onSubmit={handleAddStudent}
+                    loading={mutation.isLoading}
+                    currentTheme={currentTheme}
+                />
                 <FeesModal
                     open={showFeesModal}
                     onClose={() => setShowFeesModal(false)}
                     studentId={selectedStudentId}
-                    onSubmit={feesMutation.mutate}
+                    onSubmit={() => {
+                        addToast('Fee payment added!', 'success');
+                        setShowFeesModal(false);
+                    }}
                 />
             </div>
         </div>
