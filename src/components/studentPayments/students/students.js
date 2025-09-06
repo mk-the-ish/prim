@@ -14,151 +14,9 @@ import Modal from '../../ui/modal';
 import Form from '../../ui/form';
 import Loader from '../../ui/loader';
 import supabase from '../../../db/SupaBaseConfig';
+import FeesModal from './FeesModal'; 
 
 const ITEMS_PER_PAGE = 10;
-
-// Fees Modal Component
-const FeesModal = ({ open, onClose, studentId, onSubmit }) => {
-    const [form, setForm] = useState({
-        AmountUSD: '',
-        AmountZWG: '',
-        Type: 'levy',
-        PaymentTimeline: 'normal',
-        Form: 'cash',
-        Date: '',
-        Currency: 'usd',
-        Reference: '',
-        receipt_number: ''
-    });
-
-    useEffect(() => {
-        if (open) {
-            setForm({
-                AmountUSD: '',
-                AmountZWG: '',
-                Type: 'levy',
-                PaymentTimeline: 'normal',
-                Form: 'cash',
-                Date: '',
-                Currency: 'usd',
-                Reference: '',
-                receipt_number: ''
-            });
-        }
-    }, [open]);
-
-    const handleChange = e => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = e => {
-        e.preventDefault();
-        onSubmit({ ...form, StudentID: studentId });
-        onClose();
-    };
-
-    if (!open) return null;
-    return (
-        <Modal open={open} onClose={onClose}>
-            <Form onSubmit={handleSubmit} title="Add Fee Payment">
-                {/* Row 1: AmountUSD & AmountZWG */}
-                <div className="flex flex-col md:flex-row gap-4">
-                    <Form.Input
-                        label="Amount USD"
-                        type="number"
-                        name="AmountUSD"
-                        value={form.AmountUSD}
-                        onChange={handleChange}
-                        required
-                    />
-                    <Form.Input
-                        label="Amount ZWG"
-                        type="number"
-                        name="AmountZWG"
-                        value={form.AmountZWG}
-                        onChange={handleChange}
-                    />
-                </div>
-                {/* Row 2: Type & PaymentTimeline */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                    <Form.Select
-                        label="Type"
-                        name="Type"
-                        value={form.Type}
-                        onChange={handleChange}
-                        options={[
-                            { value: 'levy', label: 'Levy' },
-                            { value: 'tuition', label: 'Tuition' },
-                            { value: 'other', label: 'Other' }
-                        ]}
-                    />
-                    <Form.Select
-                        label="Payment Timeline"
-                        name="PaymentTimeline"
-                        value={form.PaymentTimeline}
-                        onChange={handleChange}
-                        options={[
-                            { value: 'normal', label: 'Normal' },
-                            { value: 'late', label: 'Late' }
-                        ]}
-                    />
-                </div>
-                {/* Row 3: Form & Currency */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                    <Form.Select
-                        label="Form"
-                        name="Form"
-                        value={form.Form}
-                        onChange={handleChange}
-                        options={[
-                            { value: 'cash', label: 'Cash' },
-                            { value: 'transfer', label: 'Transfer' },
-                            { value: 'ecocash', label: 'EcoCash' }
-                        ]}
-                    />
-                    <Form.Select
-                        label="Currency"
-                        name="Currency"
-                        value={form.Currency}
-                        onChange={handleChange}
-                        options={[
-                            { value: 'usd', label: 'USD' },
-                            { value: 'zwg', label: 'ZWG' }
-                        ]}
-                    />
-                </div>
-                {/* Row 4: Date & Reference */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                    <Form.Input
-                        label="Date"
-                        type="date"
-                        name="Date"
-                        value={form.Date}
-                        onChange={handleChange}
-                        required
-                    />
-                    <Form.Input
-                        label="Reference"
-                        type="text"
-                        name="Reference"
-                        value={form.Reference}
-                        onChange={handleChange}
-                    />
-                </div>
-                {/* Row 5: Receipt Number full width */}
-                <div className="mt-4">
-                    <Form.Input
-                        label="Receipt Number"
-                        type="text"
-                        name="receipt_number"
-                        value={form.receipt_number}
-                        onChange={handleChange}
-                    />
-                </div>
-            </Form>
-        </Modal>
-    );
-};
 
 const Students = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -169,15 +27,16 @@ const Students = () => {
     const [studentsPerPage] = useState(10);
     const [showNewStudentModal, setShowNewStudentModal] = useState(false);
     const [newStudent, setNewStudent] = useState({
-        FirstNames: '',
-        Surname: '',
-        Gender: '',
-        Grade: '',
-        Class: '',
-        ContactInfo: '',
-        Address: '',
-        DOB: '',
-        Sponsor: '',
+        firstNames: '',
+        surname: '',
+        gender: '',
+        grade: '',
+        class: '',
+        contactInfo: '',
+        address: '',
+        dob: '',
+        sponsor: '',
+        status: 'active'
     });
     const [formLoading, setFormLoading] = useState(false);
     const [showFeesModal, setShowFeesModal] = useState(false);
@@ -205,7 +64,7 @@ const Students = () => {
 
     // Fetch students data only if user is authenticated
     const { data: students = [], isLoading: studentsLoading } = useQuery({
-        queryKey: ['students', { gradeFilter, classFilter, genderFilter }],
+        queryKey: ['Students', { gradeFilter, classFilter, genderFilter }],
         queryFn: () => fetchStudents({ gradeFilter, classFilter, genderFilter }),
         enabled: !!userData?.role,
         onError: (error) => {
@@ -223,7 +82,7 @@ const Students = () => {
             setShowNewStudentModal(false);
         },
         onError: () => {
-            addToast('Error adding student.', 'error');
+            addToast('Error adding student.', 'error'); 
         }
     });
 
@@ -259,14 +118,16 @@ const Students = () => {
     };
 
     const columns = [
-        { header: 'Student ID', accessor: 'id' },
+        // { header: 'Student ID', accessor: 'id' },
         {
             header: 'Full Name',
-            render: (row) => `${row.FirstNames} ${row.Surname}`
+            render: (row) => `${row.firstNames} ${row.surname}`
         },
-        { header: 'Gender', accessor: 'Gender' },
-        { header: 'Grade', accessor: 'Grade' },
-        { header: 'Class', accessor: 'Class' },
+
+        
+        { header: 'Gender', accessor: 'gender' },
+        { header: 'Grade', accessor: 'grade' },
+        { header: 'Class', accessor: 'class' },
         {
             header: 'Actions',
             render: (row) => (
@@ -292,14 +153,12 @@ const Students = () => {
         }
     ];
 
-
     const filteredStudents = students.filter((student) =>
-        `${student.FirstNames} ${student.Surname}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (gradeFilter ? student.Grade === gradeFilter : true) &&
-        (classFilter ? student.Class === classFilter : true) &&
-        (genderFilter ? student.Gender === genderFilter : true)
+        `${student.firstNames} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (gradeFilter ? student.grade === gradeFilter : true) &&
+        (classFilter ? student.class === classFilter : true) &&
+        (genderFilter ? student.gender === genderFilter : true)
     );
-
 
     const FilterDropdown = ({ value, onChange, options, label }) => (
         <select
@@ -400,8 +259,8 @@ const Students = () => {
                             value={genderFilter}
                             onChange={setGenderFilter}
                             options={[
-                                { value: 'Male', label: 'Male' },
-                                { value: 'Female', label: 'Female' },
+                                { value: 'male', label: 'male' },
+                                { value: 'female', label: 'female' },
                             ]}
                             label="Genders"
                         />
@@ -436,7 +295,7 @@ const Students = () => {
                                     type="text"
                                     name="Surname"
                                     placeholder="Surname"
-                                    value={newStudent.Surname}
+                                    value={newStudent.surname}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -445,7 +304,7 @@ const Students = () => {
                                     type="text"
                                     name="FirstNames"
                                     placeholder="First Names"
-                                    value={newStudent.FirstNames}
+                                    value={newStudent.firstNames}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -454,7 +313,7 @@ const Students = () => {
                                     type="text"
                                     name="ContactInfo"
                                     placeholder="Contact Info"
-                                    value={newStudent.ContactInfo}
+                                    value={newStudent.contactInfo}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -463,7 +322,7 @@ const Students = () => {
                                     type="text"
                                     name="Sponsor"
                                     placeholder="Sponsor"
-                                    value={newStudent.Sponsor}
+                                    value={newStudent.sponsor}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -473,7 +332,7 @@ const Students = () => {
                                 <Form.Select
                                     label="Grade"
                                     name="Grade"
-                                    value={newStudent.Grade}
+                                    value={newStudent.grade}
                                     onChange={handleInputChange}
                                     required
                                     options={[
@@ -491,7 +350,7 @@ const Students = () => {
                                 <Form.Select
                                     label="Class"
                                     name="Class"
-                                    value={newStudent.Class}
+                                    value={newStudent.class}
                                     onChange={handleInputChange}
                                     required
                                     options={[
@@ -515,7 +374,7 @@ const Students = () => {
                                                 type="radio"
                                                 name="Gender"
                                                 value="Male"
-                                                checked={newStudent.Gender === 'Male'}
+                                                checked={newStudent.gender === 'Male'}
                                                 onChange={handleInputChange}
                                                 className="mr-2 focus:ring-blue-500"
                                                 required
@@ -527,7 +386,7 @@ const Students = () => {
                                                 type="radio"
                                                 name="Gender"
                                                 value="Female"
-                                                checked={newStudent.Gender === 'Female'}
+                                                checked={newStudent.gender === 'Female'}
                                                 onChange={handleInputChange}
                                                 className="mr-2 focus:ring-blue-500"
                                                 required
@@ -543,7 +402,7 @@ const Students = () => {
                                 <textarea
                                     name="Address"
                                     placeholder="Address"
-                                    value={newStudent.Address}
+                                    value={newStudent.address}
                                     onChange={handleInputChange}
                                     className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     rows="3"
@@ -560,7 +419,7 @@ const Students = () => {
                                 label="Date of Birth"
                                 type="date"
                                 name="DOB"
-                                value={newStudent.DOB}
+                                value={newStudent.dob}
                                 onChange={handleInputChange}
                                 required
                             />

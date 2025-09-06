@@ -7,10 +7,10 @@ export const fetchStudents = async ({ gradeFilter, classFilter, genderFilter }) 
 
     // Fetch students
     let query = supabase.from('Students').select('*');
-    if (gradeFilter) query = query.eq('Grade', gradeFilter);
-    if (classFilter) query = query.eq('Class', classFilter);
-    if (genderFilter) query = query.eq('Gender', genderFilter);
-    const { data, error } = await query.order('Grade', { ascending: true });
+    if (gradeFilter) query = query.eq('grade', gradeFilter);
+    if (classFilter) query = query.eq('class', classFilter);
+    if (genderFilter) query = query.eq('gender', genderFilter);
+    const { data, error } = await query.order('grade', { ascending: true });
     if (error) throw error;
     return data;
 };

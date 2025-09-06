@@ -12,7 +12,6 @@ import TopBar from '../../ui/topbar';
 import Card from '../../ui/card';
 import FormModal from '../../ui/FormModal';
 import StudentUpdate from './student_update';
-import PaymentForm from '../levy/newLevyUSD';
 import FeesModal from './FeesModal';
 
 const StudentView = () => {
@@ -49,8 +48,7 @@ const StudentView = () => {
                 const { data: paymentsData, error: paymentsError } = await supabase
                     .from('Fees')
                     .select('*')
-                    .eq('StudentID', studentId)
-                    .order('Date', { ascending: false });
+                    .eq('studentId', studentId)
 
                 if (paymentsError) {
                     addToast('Failed to fetch payments.', 'error');

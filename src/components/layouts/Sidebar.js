@@ -16,7 +16,7 @@ const navLinks = [
 
 const bottomLinks = [
   { to: '/transactions', icon: <FaCreditCard />, label: 'Transactions' },
-  { to: '/financials', icon: <FaFileInvoiceDollar />, label: 'Financials' },
+  { to: '/cashbook', icon: <FaFileInvoiceDollar />, label: 'Financials' },
 ];
 
 // Sidebar-specific button (not the main Button component)
