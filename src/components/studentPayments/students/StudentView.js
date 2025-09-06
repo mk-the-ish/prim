@@ -48,8 +48,7 @@ const StudentView = () => {
                 const { data: paymentsData, error: paymentsError } = await supabase
                     .from('Fees')
                     .select('*')
-                    .eq('StudentID', studentId)
-                    .order('Date', { ascending: false });
+                    .eq('studentId', studentId)
 
                 if (paymentsError) {
                     addToast('Failed to fetch payments.', 'error');

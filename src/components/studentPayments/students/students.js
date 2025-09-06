@@ -82,7 +82,7 @@ const Students = () => {
             setShowNewStudentModal(false);
         },
         onError: () => {
-            addToast('Error adding student.', 'error');
+            addToast('Error adding student.', 'error'); 
         }
     });
 
@@ -123,6 +123,8 @@ const Students = () => {
             header: 'Full Name',
             render: (row) => `${row.firstNames} ${row.surname}`
         },
+
+        
         { header: 'Gender', accessor: 'gender' },
         { header: 'Grade', accessor: 'grade' },
         { header: 'Class', accessor: 'class' },
@@ -293,7 +295,7 @@ const Students = () => {
                                     type="text"
                                     name="Surname"
                                     placeholder="Surname"
-                                    value={newStudent.Surname}
+                                    value={newStudent.surname}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -302,7 +304,7 @@ const Students = () => {
                                     type="text"
                                     name="FirstNames"
                                     placeholder="First Names"
-                                    value={newStudent.FirstNames}
+                                    value={newStudent.firstNames}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -311,7 +313,7 @@ const Students = () => {
                                     type="text"
                                     name="ContactInfo"
                                     placeholder="Contact Info"
-                                    value={newStudent.ContactInfo}
+                                    value={newStudent.contactInfo}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -320,7 +322,7 @@ const Students = () => {
                                     type="text"
                                     name="Sponsor"
                                     placeholder="Sponsor"
-                                    value={newStudent.Sponsor}
+                                    value={newStudent.sponsor}
                                     onChange={handleInputChange}
                                     required
                                 />
@@ -330,7 +332,7 @@ const Students = () => {
                                 <Form.Select
                                     label="Grade"
                                     name="Grade"
-                                    value={newStudent.Grade}
+                                    value={newStudent.grade}
                                     onChange={handleInputChange}
                                     required
                                     options={[
@@ -348,7 +350,7 @@ const Students = () => {
                                 <Form.Select
                                     label="Class"
                                     name="Class"
-                                    value={newStudent.Class}
+                                    value={newStudent.class}
                                     onChange={handleInputChange}
                                     required
                                     options={[
@@ -372,7 +374,7 @@ const Students = () => {
                                                 type="radio"
                                                 name="Gender"
                                                 value="Male"
-                                                checked={newStudent.Gender === 'Male'}
+                                                checked={newStudent.gender === 'Male'}
                                                 onChange={handleInputChange}
                                                 className="mr-2 focus:ring-blue-500"
                                                 required
@@ -384,7 +386,7 @@ const Students = () => {
                                                 type="radio"
                                                 name="Gender"
                                                 value="Female"
-                                                checked={newStudent.Gender === 'Female'}
+                                                checked={newStudent.gender === 'Female'}
                                                 onChange={handleInputChange}
                                                 className="mr-2 focus:ring-blue-500"
                                                 required
@@ -400,7 +402,7 @@ const Students = () => {
                                 <textarea
                                     name="Address"
                                     placeholder="Address"
-                                    value={newStudent.Address}
+                                    value={newStudent.address}
                                     onChange={handleInputChange}
                                     className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     rows="3"
@@ -417,7 +419,7 @@ const Students = () => {
                                 label="Date of Birth"
                                 type="date"
                                 name="DOB"
-                                value={newStudent.DOB}
+                                value={newStudent.dob}
                                 onChange={handleInputChange}
                                 required
                             />
