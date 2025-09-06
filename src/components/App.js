@@ -32,6 +32,7 @@ import Vendors from './bankTransactions/vendors.js';
 import ViewInvoices from './bankTransactions/viewInvoices.js';
 import ViewPC from './cashTransactions/viewPC.js';
 import Cashbook from './financials/cashbook.js';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,7 +94,7 @@ function AppRoutes() {
   );
 }
 
-function AppWrapper() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
@@ -102,6 +103,7 @@ function AppWrapper() {
             <Router>
               <AppRoutes />
               <ReactQueryDevtools initialIsOpen={false} />
+              <SpeedInsights />
             </Router>
           </AuthProvider>
         </ToastProvider>
@@ -109,5 +111,3 @@ function AppWrapper() {
     </QueryClientProvider>
   );
 }
-
-export default AppWrapper;
