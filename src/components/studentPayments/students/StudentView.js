@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaPlus, FaChevronDown } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { fetchUser } from '../../api/userApi';
+import { fetchStudentById, fetchStudentPayments } from '../../api/studentsInfoApi';
 import supabase from '../../../db/SupaBaseConfig';
 import Loader from '../../ui/loader';
 import DataTable from '../../ui/dataTable';
@@ -14,48 +14,34 @@ import FormModal from '../../ui/FormModal';
 import StudentUpdate from './student_update';
 import FeesModal from './FeesModal';
 
+const TABS = [
+    { key: 'info', label: 'Personal Info' },
+    { key: 'payments', label: 'Payment History' },
+    // Future tabs can be added here
+];
+
 const StudentView = () => {
     const { studentId } = useParams();
     const [student, setStudent] = useState(null);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [userName, setUserName] = useState('');
-    const [showAddMenu, setShowAddMenu] = useState(false);
-    const [modalType, setModalType] = useState(null); // null | 'update' | 'payment'
+    const [modalType, setModalType] = useState(null); // null | 'update'
     const [showFeesModal, setShowFeesModal] = useState(false);
+    const [activeTab, setActiveTab] = useState('info');
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { addToast } = useToast();
 
-    // Fetch student and payments only (user info not needed for parent)
+    // Fetch student info
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch student info
-                const { data: studentData, error: studentError } = await supabase
-                    .from('Students')
-                    .select('*')
-                    .eq('id', studentId)
-                    .maybeSingle();
-                if (studentError || !studentData) {
-                    setStudent(null);
-                } else {
-                    setStudent(studentData);
-                }
+                const studentData = await fetchStudentById(studentId);
+                setStudent(studentData || null);
 
-                // Fetch all payments for this student from Fees table
-                const { data: paymentsData, error: paymentsError } = await supabase
-                    .from('Fees')
-                    .select('*')
-                    .eq('studentId', studentId)
-
-                if (paymentsError) {
-                    addToast('Failed to fetch payments.', 'error');
-                    setPayments([]);
-                } else {
-                    setPayments(paymentsData || []);
-                }
+                const paymentsData = await fetchStudentPayments(studentId);
+                setPayments(paymentsData || []);
             } catch (error) {
                 addToast('Failed to fetch student or payments.', 'error');
                 setStudent(null);
@@ -65,15 +51,13 @@ const StudentView = () => {
             }
         };
         fetchData();
-        // eslint-disable-next-line
-    }, [studentId]);
+    }, [studentId, addToast]);
 
     // Delete student logic
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this student?')) return;
         setLoading(true);
         try {
-            // Delete from Students table
             const { error } = await supabase
                 .from('Students')
                 .delete()
@@ -88,21 +72,15 @@ const StudentView = () => {
         }
     };
 
-    // Table columns
+    // Payment table columns (matching DB schema)
     const columns = [
-        { header: 'ID', accessor: 'id' },
-        { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
-        { header: 'Type', accessor: 'Type' },
-        { header: 'Currency', accessor: 'Currency' },
-        { header: 'Amount', render: row => `$${Number(row.AmountUSD).toFixed(2)}` },
-        { header: 'Reference', accessor: 'Reference' },
-        { header: 'Form', accessor: 'Form' },
-        { header: 'Account', render: row => row.Accounts ? row.Accounts.AccNumber : row.Account || 'N/A' }
-    ];
-
-    // Add Payment Menu
-    const addPaymentOptions = [
-        { label: 'Add Payment', onClick: () => setShowFeesModal(true) },
+        { header: 'Date', accessor: 'created_at', render: row => new Date(row.created_at).toLocaleDateString() },
+        { header: 'Type', accessor: 'feesType' },
+        { header: 'Currency', accessor: 'currency' },
+        { header: 'Amount', accessor: 'amount', render: row => `$${Number(row.amount).toFixed(2)}` },
+        { header: 'Receipt', accessor: 'receiptNumber' },
+        { header: 'Form', accessor: 'paymentForm' },
+        { header: 'Account', accessor: 'accountId' }
     ];
 
     // Student not found
@@ -124,51 +102,70 @@ const StudentView = () => {
             className="min-h-screen"
             style={{ background: currentTheme.background?.default, color: currentTheme.text?.primary }}
         >
-            <TopBar title="Student Details" userName={userName} />
+            <TopBar title="Student Details" userName={student?.firstNames || ''} />
             <div className="pt-8 px-6 pb-6">
                 {loading ? (
                     <div className="flex justify-center items-center min-h-[300px]">
                         <Loader type="card" count={1} />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left Panel: Student Details */}
-                        <Card title="Student Details" className="h-fit">
-                            <div className="space-y-2 text-justify">
-                                <p><strong>Student ID:</strong> {student.id}</p>
-                                <p><strong>Full Name:</strong> {student.FirstNames} {student.Surname}</p>
-                                <p><strong>Gender:</strong> {student.Gender}</p>
-                                <p><strong>Grade:</strong> {student.Grade}</p>
-                                <p><strong>Class:</strong> {student.Class}</p>
-                                <p><strong>Contact Info:</strong> {student.ContactInfo}</p>
-                                <p><strong>Address:</strong> {student.Address}</p>
-                                <p><strong>Date of Birth:</strong> {student.DOB ? new Date(student.DOB).toLocaleDateString() : '-'}</p>
-                                <p><strong>Sponsor:</strong> {student.Sponsor}</p>
-                                <p><strong>Levy Owed:</strong> ${student.Levy_Owing?.toFixed(2) || '0.00'}</p>
-                                <p><strong>Tuition Owed:</strong> ${student.Tuition_Owing?.toFixed(2) || '0.00'}</p>
-                            </div>
-                            <div className="mt-6 flex flex-col gap-2">
-                                <Button onClick={() => setModalType('update')} variant="primary">
-                                    Update
-                                </Button>
-                                <Button onClick={() => navigate(`/invoice/${studentId}`)} variant="secondary">
-                                    Invoice
-                                </Button>
-                                <Button
-                                    onClick={handleDelete}
-                                    variant="danger"
+                    <div className="max-w-5xl mx-auto">
+                        {/* Tabs */}
+                        <div className="flex border-b mb-6">
+                            {TABS.map(tab => (
+                                <button
+                                    key={tab.key}
+                                    className={`px-6 py-2 font-semibold focus:outline-none ${
+                                        activeTab === tab.key
+                                            ? 'border-b-2 border-blue-600 text-blue-600'
+                                            : 'text-gray-500'
+                                    }`}
+                                    onClick={() => setActiveTab(tab.key)}
                                 >
-                                    Delete
-                                </Button>
-                            </div>
-                        </Card>
-
-                        {/* Middle & Right Panel: Payments Table */}
-                        <div className="lg:col-span-2 flex flex-col gap-6">
-                            <Card
-                                title="All Payments"
-                                headerAction={
-                                    <div className="relative">
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        {/* Tab Content */}
+                        <div>
+                            {activeTab === 'info' && (
+                                <Card title="Personal Information" className="mb-6">
+                                    <div className="space-y-2 text-justify">
+                                        <p><strong>Student ID:</strong> {student.id}</p>
+                                        <p><strong>Full Name:</strong> {student.firstNames} {student.surname}</p>
+                                        <p><strong>Gender:</strong> {student.gender}</p>
+                                        <p><strong>Grade:</strong> {student.grade}</p>
+                                        <p><strong>Class:</strong> {student.class}</p>
+                                        <p><strong>Contact Info:</strong> {student.contactInfo}</p>
+                                        <p><strong>Address:</strong> {student.address}</p>
+                                        <p><strong>Date of Birth:</strong> {student.dob ? new Date(student.dob).toLocaleDateString() : '-'}</p>
+                                        <p><strong>Sponsor:</strong> {student.sponsor}</p>
+                                        <p><strong>Status:</strong> {student.status}</p>
+                                        <p><strong>Levy Owed:</strong> ${student.levyOwing?.toFixed(2) || '0.00'}</p>
+                                        <p><strong>Tuition Owed:</strong> ${student.tuitionOwing?.toFixed(2) || '0.00'}</p>
+                                        <p><strong>Exam Fee:</strong> ${student.examFee?.toFixed(2) || '0.00'}</p>
+                                        <p><strong>Other Owed:</strong> ${student.otherOwing?.toFixed(2) || '0.00'}</p>
+                                    </div>
+                                    <div className="mt-6 flex flex-col gap-2">
+                                        <Button onClick={() => setModalType('update')} variant="primary">
+                                            Update
+                                        </Button>
+                                        <Button onClick={() => navigate(`/invoice/${studentId}`)} variant="secondary">
+                                            Invoice
+                                        </Button>
+                                        <Button
+                                            onClick={handleDelete}
+                                            variant="danger"
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </Card>
+                            )}
+                            {activeTab === 'payments' && (
+                                <Card
+                                    title="Payment History"
+                                    headerAction={
                                         <Button
                                             onClick={() => setShowFeesModal(true)}
                                             variant="primary"
@@ -177,18 +174,19 @@ const StudentView = () => {
                                             <FaPlus className="mr-2" />
                                             Add Payment
                                         </Button>
-                                    </div>
-                                }
-                            >
-                                <DataTable
-                                    columns={columns}
-                                    data={payments}
-                                    currentPage={1}
-                                    totalPages={1}
-                                    itemsPerPage={payments.length}
-                                    onPageChange={() => {}}
-                                />
-                            </Card>
+                                    }
+                                >
+                                    <DataTable
+                                        columns={columns}
+                                        data={payments}
+                                        currentPage={1}
+                                        totalPages={1}
+                                        itemsPerPage={payments.length}
+                                        onPageChange={() => {}}
+                                    />
+                                </Card>
+                            )}
+                            {/* Future tabs can be added here */}
                         </div>
                         {/* FormModal for update */}
                         <FormModal
@@ -203,20 +201,12 @@ const StudentView = () => {
                             open={showFeesModal}
                             onClose={() => setShowFeesModal(false)}
                             studentId={studentId}
-                            onSubmit={async (feeData) => {
-                                const { error } = await supabase.from('Fees').insert([feeData]);
-                                if (error) addToast('Failed to add payment', 'error');
-                                else {
-                                    addToast('Payment added!', 'success');
-                                    setShowFeesModal(false);
-                                    // Optionally refetch payments
-                                    const { data: paymentsData } = await supabase
-                                        .from('Fees')
-                                        .select('*')
-                                        .eq('StudentID', studentId)
-                                        .order('Date', { ascending: false });
-                                    setPayments(paymentsData || []);
-                                }
+                            onSubmit={async () => {
+                                addToast('Payment added!', 'success');
+                                setShowFeesModal(false);
+                                // Refetch payments
+                                const paymentsData = await fetchStudentPayments(studentId);
+                                setPayments(paymentsData || []);
                             }}
                         />
                     </div>

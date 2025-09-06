@@ -41,3 +41,23 @@ export const fetchLinkedStudentIdsForParent = async () => {
     // Return an array of student IDs (supporting multiple children)
     return data;
 };
+
+export async function fetchStudentById(studentId) {
+    const { data, error } = await supabase
+        .from('Students')
+        .select('*')
+        .eq('id', studentId)
+        .single();
+    if (error) return null;
+    return data;
+}
+
+export async function fetchStudentPayments(studentId) {
+    const { data, error } = await supabase
+        .from('Fees')
+        .select('*')
+        .eq('studentId', studentId)
+        .order('created_at', { ascending: false });
+    if (error) return [];
+    return data;
+}
