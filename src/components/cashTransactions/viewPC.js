@@ -26,11 +26,8 @@ const pettyCategories = [
 ];
 
 const bankCategories = [
-    'petty cash',
-    'levy',
-    'tuition',
-    'exam',
-    'other'
+    'petty cash'
+    
 ];
 
 const tableHeaderClass = "px-4 py-2 bg-gray-100 text-gray-700 font-semibold border-b";
@@ -51,7 +48,7 @@ const ViewPC = () => {
     const [bankForm, setBankForm] = useState({
         date: '',
         description: '',
-        to: '',
+        payee: '',
         amount: '',
         category: 'petty cash',
         reference: '',
@@ -109,19 +106,18 @@ const ViewPC = () => {
             await addBankTransaction({
                 date: form.date,
                 description: form.description,
-                to: form.to,
+                payee: form.payee,
                 amount: parseFloat(form.amount),
                 category: form.category,
                 reference: form.reference,
                 accountId: form.accountId ? parseInt(form.accountId) : null,
-                bank: form.bank,
-                flow: 'in'
+                flow: 'out'
             });
         },
         onSuccess: () => {
             addToast('Bank withdrawal recorded!', 'success');
             setShowBankModal(false);
-            setBankForm({ date: '', description: '', to: '', amount: '', category: 'petty cash', reference: '', accountId: '', bank: '' });
+            setBankForm({ date: '', description: '', payee: '', amount: '', category: 'petty cash', reference: '', accountId: '' });
             refetchBank();
         },
         onError: () => {
@@ -293,9 +289,9 @@ const ViewPC = () => {
                         <Form.Input
                             label="To"
                             type="text"
-                            name="to"
-                            value={bankForm.to}
-                            onChange={e => setBankForm({ ...bankForm, to: e.target.value })}
+                            name="payee"
+                            value={bankForm.payee}
+                            onChange={e => setBankForm({ ...bankForm, payee: e.target.value })}
                             required
                         />
                     </div>
