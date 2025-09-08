@@ -9,26 +9,28 @@ import FAB from '../ui/FAB';
 import Card from '../ui/card';
 import Modal from '../ui/modal';
 import Form from '../ui/form';
-import supabase from '../../db/SupaBaseConfig';
 import { useTheme } from '../../contexts/ThemeContext';
+import { fetchCommissions, addCommission } from '../api/viewPaymentsApi';
 
 const CommissionFormModal = ({ open, onClose, onSubmit }) => {
     const [form, setForm] = useState({
-        Date: '',
-        Description: '',
-        Payee: '',
-        Amount: '',
-        flow: 'in'
+        date: '',
+        description: '',
+        recipient: '',
+        amount: '',
+        flow: 'in',
+        category: '',
     });
 
     useEffect(() => {
         if (open) {
             setForm({
-                Date: '',
-                Description: '',
-                Payee: '',
-                Amount: '',
-                flow: 'in'
+                date: '',
+                description: '',
+                recipient: '',
+                amount: '',
+                flow: 'in',
+                category: '',
             });
         }
     }, [open]);
@@ -51,8 +53,8 @@ const CommissionFormModal = ({ open, onClose, onSubmit }) => {
                     <Form.Input
                         label="Date"
                         type="date"
-                        name="Date"
-                        value={form.Date}
+                        name="date"
+                        value={form.date}
                         onChange={handleChange}
                         required
                     />
@@ -72,26 +74,33 @@ const CommissionFormModal = ({ open, onClose, onSubmit }) => {
                     <Form.Input
                         label="Description"
                         type="text"
-                        name="Description"
-                        value={form.Description}
+                        name="description"
+                        value={form.description}
                         onChange={handleChange}
                         required
                     />
                     <Form.Input
-                        label="Payee"
+                        label="Recipient"
                         type="text"
-                        name="Payee"
-                        value={form.Payee}
+                        name="recipient"
+                        value={form.recipient}
                         onChange={handleChange}
                         required
                     />
                 </div>
-                <div className="mt-4">
+                <div className="flex flex-col md:flex-row gap-4 mt-4">
+                    <Form.Input
+                        label="Category"
+                        type="text"
+                        name="category"
+                        value={form.category}
+                        onChange={handleChange}
+                    />
                     <Form.Input
                         label="Amount"
                         type="number"
-                        name="Amount"
-                        value={form.Amount}
+                        name="amount"
+                        value={form.amount}
                         onChange={handleChange}
                         required
                     />
@@ -124,14 +133,12 @@ function Commission() {
 
     useEffect(() => {
         setLoading(true);
-        supabase
-            .from('Commissions')
-            .select('*')
-            .order('Date', { ascending: false })
-            .then(({ data }) => {
+        fetchCommissions()
+            .then(data => {
                 setCommissions(data || []);
                 setLoading(false);
-            });
+            })
+            .catch(() => setLoading(false));
     }, [modalOpen]);
 
     // Filter commissions by flow if selected
@@ -140,10 +147,11 @@ function Commission() {
         : commissions;
 
     const columns = [
-        { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
-        { header: 'Description', accessor: 'Description' },
-        { header: 'Payee', accessor: 'Payee' },
-        { header: 'Amount', accessor: 'Amount' },
+        { header: 'Date', render: row => new Date(row.date).toLocaleDateString() },
+        { header: 'Description', accessor: 'description' },
+        { header: 'Recipient', accessor: 'recipient' },
+        { header: 'Category', accessor: 'category' },
+        { header: 'Amount', accessor: 'amount', render: row => `$${Number(row.amount).toFixed(2)}` },
         { header: 'Flow', accessor: 'flow' }
     ];
 
@@ -158,11 +166,9 @@ function Commission() {
     ];
 
     const handleAddCommission = async (form) => {
-        const { error } = await supabase.from('Commissions').insert([form]);
-        if (!error) {
-            setModalOpen(false);
-            // Data will refetch via useEffect
-        }
+        await addCommission(form);
+        setModalOpen(false);
+        // Data will refetch via useEffect
     };
 
     if (isLoading || loading) {
