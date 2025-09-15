@@ -14,7 +14,7 @@ export const fetchFees = async () => {
 export const fetchCommissions = async () => {
     const { data, error } = await supabase
         .from('Cash')
-        .select('id, date, amount, description, flow, category, recipient')
+        .select('id, created_at, date, amount, description, flow, type, category, recipient')
         .eq('type', 'commission')
         .order('date', { ascending: false });
     if (error) throw error;
@@ -27,18 +27,17 @@ export const addCommission = async (commission) => {
         ...commission,
         type: 'commission'
     };
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('Cash')
         .insert([payload]);
     if (error) throw error;
-    return data;
 };
 
 // Fetch petty cash transactions (Money Out)
 export const fetchCashTransactions = async () => {
     const { data, error } = await supabase
         .from('Cash')
-        .select('*')
+        .select('id, created_at, date, amount, description, flow, type, category, recipient')
         .eq('flow', 'out')
         .order('date', { ascending: false });
     if (error) return [];
@@ -50,7 +49,7 @@ export const fetchBankTransactions = async () => {
     const { data, error } = await supabase
         .from('Bank')
         .select('*')
-        .eq('flow', 'in')
+        .eq('category', 'petty cash')
         .order('date', { ascending: false });
     if (error) return [];
     return data || [];

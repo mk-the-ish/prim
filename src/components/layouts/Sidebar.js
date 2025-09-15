@@ -68,7 +68,7 @@ const Sidebar = ({ children }) => {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <div
-        className={`transition-all duration-300 flex flex-col justify-between fixed h-full`}
+        className={`transition-all duration-300 flex flex-col justify-between fixed h-full print:hidden`}
         style={{
           background: currentTheme.background?.sidebar || '#1f2937',
           color: currentTheme.text?.sidebar || '#fff',

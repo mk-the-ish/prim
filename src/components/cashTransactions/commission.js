@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchUser } from '../api/userApi';
 import TopBar from '../ui/topbar';
 import Loader from '../ui/loader';
@@ -9,26 +9,28 @@ import FAB from '../ui/FAB';
 import Card from '../ui/card';
 import Modal from '../ui/modal';
 import Form from '../ui/form';
-import supabase from '../../db/SupaBaseConfig';
 import { useTheme } from '../../contexts/ThemeContext';
+import { fetchCommissions, addCommission } from '../api/viewPaymentsApi';
 
-const CommissionFormModal = ({ open, onClose, onSubmit }) => {
+const CommissionFormModal = ({ open, onClose, onSubmit, isLoading }) => {
     const [form, setForm] = useState({
-        Date: '',
-        Description: '',
-        Payee: '',
-        Amount: '',
-        flow: 'in'
+        date: '',
+        description: '',
+        recipient: '',
+        amount: '',
+        flow: 'in',
+        category: '',
     });
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (open) {
             setForm({
-                Date: '',
-                Description: '',
-                Payee: '',
-                Amount: '',
-                flow: 'in'
+                date: '',
+                description: '',
+                recipient: '',
+                amount: '',
+                flow: 'in',
+                category: '',
             });
         }
     }, [open]);
@@ -40,19 +42,18 @@ const CommissionFormModal = ({ open, onClose, onSubmit }) => {
     const handleSubmit = e => {
         e.preventDefault();
         onSubmit(form);
-        onClose();
     };
 
     if (!open) return null;
     return (
         <Modal open={open} onClose={onClose}>
-            <Form onSubmit={handleSubmit} title="Add Commission">
+            <Form onSubmit={handleSubmit} title="Add Commission" loading={isLoading}>
                 <div className="flex flex-col md:flex-row gap-4">
                     <Form.Input
                         label="Date"
                         type="date"
-                        name="Date"
-                        value={form.Date}
+                        name="date"
+                        value={form.date}
                         onChange={handleChange}
                         required
                     />
@@ -72,26 +73,33 @@ const CommissionFormModal = ({ open, onClose, onSubmit }) => {
                     <Form.Input
                         label="Description"
                         type="text"
-                        name="Description"
-                        value={form.Description}
+                        name="description"
+                        value={form.description}
                         onChange={handleChange}
                         required
                     />
                     <Form.Input
-                        label="Payee"
+                        label="Recipient"
                         type="text"
-                        name="Payee"
-                        value={form.Payee}
+                        name="recipient"
+                        value={form.recipient}
                         onChange={handleChange}
                         required
                     />
                 </div>
-                <div className="mt-4">
+                <div className="flex flex-col md:flex-row gap-4 mt-4">
+                    <Form.Input
+                        label="Category"
+                        type="text"
+                        name="category"
+                        value={form.category}
+                        onChange={handleChange}
+                    />
                     <Form.Input
                         label="Amount"
                         type="number"
-                        name="Amount"
-                        value={form.Amount}
+                        name="amount"
+                        value={form.amount}
                         onChange={handleChange}
                         required
                     />
@@ -107,8 +115,10 @@ function Commission() {
     const [filterFlow, setFilterFlow] = useState('');
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
+    const queryClient = useQueryClient();
 
-    const { data: userData, isLoading } = useQuery({
+    // User query
+    const { data: userData, isLoading: userLoading } = useQuery({
         queryKey: ['user'],
         queryFn: fetchUser,
         onError: () => navigate('/login'),
@@ -119,31 +129,41 @@ function Commission() {
         }
     });
 
-    const [commissions, setCommissions] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Commissions query
+    const {
+        data: commissions = [],
+        isLoading: commissionsLoading,
+        refetch: refetchCommissions
+    } = useQuery({
+        queryKey: ['commissions'],
+        queryFn: fetchCommissions,
+    });
 
-    useEffect(() => {
-        setLoading(true);
-        supabase
-            .from('Commissions')
-            .select('*')
-            .order('Date', { ascending: false })
-            .then(({ data }) => {
-                setCommissions(data || []);
-                setLoading(false);
-            });
-    }, [modalOpen]);
+    // Add commission mutation
+    const addCommissionMutation = useMutation({
+        mutationFn: addCommission,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['commissions']);
+            setModalOpen(false);
+        }
+    });
 
     // Filter commissions by flow if selected
     const filteredCommissions = filterFlow
         ? commissions.filter(c => c.flow === filterFlow)
         : commissions;
 
+    // Calculate commissions balance
+    const totalIn = commissions.filter(c => c.flow === 'in').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    const totalOut = commissions.filter(c => c.flow === 'out').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    const balance = totalIn - totalOut;
+
     const columns = [
-        { header: 'Date', render: row => new Date(row.Date).toLocaleDateString() },
-        { header: 'Description', accessor: 'Description' },
-        { header: 'Payee', accessor: 'Payee' },
-        { header: 'Amount', accessor: 'Amount' },
+        { header: 'Date', render: row => new Date(row.date).toLocaleDateString() },
+        { header: 'Description', accessor: 'description' },
+        { header: 'Recipient', accessor: 'recipient' },
+        { header: 'Category', accessor: 'category' },
+        { header: 'Amount', accessor: 'amount', render: row => `$${Number(row.amount).toFixed(2)}` },
         { header: 'Flow', accessor: 'flow' }
     ];
 
@@ -158,14 +178,10 @@ function Commission() {
     ];
 
     const handleAddCommission = async (form) => {
-        const { error } = await supabase.from('Commissions').insert([form]);
-        if (!error) {
-            setModalOpen(false);
-            // Data will refetch via useEffect
-        }
+        await addCommissionMutation.mutateAsync(form);
     };
 
-    if (isLoading || loading) {
+    if (userLoading || commissionsLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: currentTheme.background?.default }}>
                 <Loader type="card" count={1} />
@@ -188,7 +204,23 @@ function Commission() {
                     <option value="out">OUT</option>
                 </select>
             </div>
-            <div className="pt-5 px-6">
+            <div className="pt-5 px-6 py-4">
+                <Card title="Commissions Balance">
+                    <div className="flex gap-8 items-center">
+                        <div>
+                            <span className="font-semibold">Total IN:</span>
+                            <span className="ml-2 text-green-700">${totalIn.toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Total OUT:</span>
+                            <span className="ml-2 text-red-700">${totalOut.toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Balance:</span>
+                            <span className="ml-2 text-blue-700">${balance.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </Card>
                 <Card title="Commissions">
                     <DataTable
                         columns={columns}
@@ -203,6 +235,7 @@ function Commission() {
                     open={modalOpen}
                     onClose={() => setModalOpen(false)}
                     onSubmit={handleAddCommission}
+                    isLoading={addCommissionMutation.isLoading}
                 />
                 <FAB actions={fabActions} />
             </div>
