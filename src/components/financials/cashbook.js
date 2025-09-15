@@ -21,7 +21,7 @@ const getPeriod = (type, year, month) => {
 const fetchAccounts = async () => {
     const { data, error } = await supabase
         .from('Accounts')
-        .select('id, Bank, Branch, AccNumber, Currency');
+        .select('id, bank, branch, accNumber, currency');
     if (error) throw error;
     return data || [];
 };
@@ -30,40 +30,27 @@ const fetchTransactions = async ({ queryKey }) => {
     const [_key, { type, year, month, accountId, currency }] = queryKey;
     const { startDate, endDate } = getPeriod(type, year, month);
 
-    // Incoming
-    let incomingQuery = supabase
-        .from('IncomingBankTransactions')
-        .select('Date, id, Amount, Category, Account, Currency, Description, From')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
+    let query = supabase
+        .from('Bank')
+        .select('id, date, amount, category, accountId, currency, description, payee, flow')
+        .gte('date', startDate)
+        .lte('date', endDate);
 
-    if (accountId) incomingQuery = incomingQuery.eq('Account', accountId);
-    if (currency) incomingQuery = incomingQuery.eq('Currency', currency);
+    if (accountId) query = query.eq('accountId', accountId);
+    if (currency) query = query.eq('currency', currency);
 
-    const { data: incomingData, error: incomingError } = await incomingQuery;
-    if (incomingError) throw incomingError;
+    const { data, error } = await query;
+    if (error) throw error;
 
-    // Outgoing
-    let outgoingQuery = supabase
-        .from('OutgoingBankTransactions')
-        .select('Date, id, Amount, Category, Account, Currency, Description, To')
-        .gte('Date', startDate)
-        .lte('Date', endDate);
-
-    if (accountId) outgoingQuery = outgoingQuery.eq('Account', accountId);
-    if (currency) outgoingQuery = outgoingQuery.eq('Currency', currency);
-
-    const { data: outgoingData, error: outgoingError } = await outgoingQuery;
-    if (outgoingError) throw outgoingError;
+    // Split by flow
+    const incomingData = (data || []).filter(tx => tx.flow === 'in');
+    const outgoingData = (data || []).filter(tx => tx.flow === 'out');
 
     // Extract distinct categories
     const allCategories = [
-        ...new Set([
-            ...(incomingData || []).map((entry) => entry.Category),
-            ...(outgoingData || []).map((entry) => entry.Category),
-        ]),
+        ...new Set([...(incomingData).map((entry) => entry.category), ...(outgoingData).map((entry) => entry.category)]),
     ];
-    return { incomingData: incomingData || [], outgoingData: outgoingData || [], categories: allCategories };
+    return { incomingData, outgoingData, categories: allCategories };
 };
 
 const Cashbook = () => {
@@ -79,8 +66,9 @@ const Cashbook = () => {
         queryFn: fetchAccounts
     });
 
-    const currencyOptions = [...new Set(accounts.map(acc => acc.Currency))];
-
+    const currencyOptions = [...new Set(accounts.map(acc => acc.Currency))]
+    .filter(cur => !!cur);
+    
     const { data, isLoading } = useQuery({
         queryKey: [
             'financials',

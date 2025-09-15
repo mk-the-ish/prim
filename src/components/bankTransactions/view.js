@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../db/SupaBaseConfig';
 import TopBar from '../ui/topbar';
@@ -9,7 +9,7 @@ import DataTable from '../ui/dataTable';
 import FAB from '../ui/FAB';
 
 // Modal component
-const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
+const PaymentModal = ({ open, onClose, accounts, onSubmit, isLoading }) => {
     const [type, setType] = useState('outgoing');
     const [form, setForm] = useState({
         date: '',
@@ -20,6 +20,20 @@ const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
         party: ''
     });
 
+    React.useEffect(() => {
+        if (open) {
+            setType('outgoing');
+            setForm({
+                date: '',
+                description: '',
+                account: '',
+                amount: '',
+                category: '',
+                party: ''
+            });
+        }
+    }, [open]);
+
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
@@ -27,7 +41,6 @@ const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
     const handleSubmit = e => {
         e.preventDefault();
         onSubmit({ ...form, type });
-        onClose();
     };
 
     if (!open) return null;
@@ -57,14 +70,14 @@ const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
                             <option value="">Select Account</option>
                             {Object.values(accounts).map(acc => (
                                 <option key={acc.id} value={acc.id}>
-                                    {acc.Bank} - {acc.Branch} - {acc.AccNumber} ({acc.Currency})
+                                    {acc.bank} - {acc.branch} - {acc.accNumber} ({acc.currency})
                                 </option>
                             ))}
                         </select>
                     </label>
                     <label>
                         Amount:
-                        <input type="number" name="amount" value={form.amount} onChange={handleChange} className="border rounded px-2 py-1 ml-2" required />
+                        <input type="number" name="amount" value={form.amount} onChange={handleChange} className="border rounded px-2 py-1 ml-2" required min="0" step="0.01" />
                     </label>
                     <label>
                         Category:
@@ -76,7 +89,7 @@ const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
                     </label>
                     <div className="flex justify-end gap-2 mt-4">
                         <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-                        <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Submit</button>
+                        <button type="submit" className="px-4 py-2 bg-primary text-white rounded" disabled={isLoading}>Submit</button>
                     </div>
                 </form>
             </div>
@@ -84,12 +97,37 @@ const PaymentModal = ({ open, onClose, accounts, onSubmit }) => {
     );
 };
 
+const fetchAccounts = async () => {
+    const { data, error } = await supabase
+        .from('Accounts')
+        .select('id, accNumber, currency, bank, branch');
+    if (error) throw error;
+    return data || [];
+};
+
+const fetchTransactions = async ({ queryKey }) => {
+    const [_key, { context, filters }] = queryKey;
+    let query = supabase
+        .from('Bank')
+        .select('id, date, description, payee, amount, category, accountId, flow');
+
+    // Map context to schema values
+    const flowValue = context === 'outgoing' ? 'out' : 'in';
+    query = query.eq('flow', flowValue);
+
+    if (filters.date) query = query.eq('date', filters.date);
+    if (filters.account) query = query.eq('accountId', filters.account);
+    if (filters.category) query = query.eq('category', filters.category);
+
+    // Currency filter: filter by account's currency, not Bank table
+    // We'll filter in JS after fetching, since currency is not in Bank table
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+};
+
 const OutgoingIncomingView = () => {
     const [context, setContext] = useState('outgoing');
-    const [transactions, setTransactions] = useState([]);
-    const [accounts, setAccounts] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [filters, setFilters] = useState({
         date: '',
         account: '',
@@ -99,59 +137,36 @@ const OutgoingIncomingView = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const { addToast } = useToast();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
-    // Fetch accounts for filter and display
-    useEffect(() => {
-        const fetchAccounts = async () => {
-            const { data, error } = await supabase
-                .from('Accounts')
-                .select('id, AccNumber, Currency, Bank, Branch');
-            if (!error && data) {
-                const accMap = {};
-                data.forEach(acc => {
-                    accMap[acc.id] = acc;
-                });
-                setAccounts(accMap);
-            }
-        };
-        fetchAccounts();
-    }, []);
+    // Fetch accounts
+    const { data: accountsArr = [], isLoading: accountsLoading } = useQuery({
+        queryKey: ['accounts'],
+        queryFn: fetchAccounts
+    });
+    // Map accounts by id for easy lookup
+    const accounts = React.useMemo(() => {
+        const accMap = {};
+        accountsArr.forEach(acc => { accMap[acc.id] = acc; });
+        return accMap;
+    }, [accountsArr]);
 
-    // Fetch transactions with filters
-    useEffect(() => {
-        setLoading(true);
-        setError(null);
-        const fetchTransactions = async () => {
-            let query;
-            if (context === 'outgoing') {
-                query = supabase
-                    .from('OutgoingBankTransactions')
-                    .select('id, Date, Description, To, Amount, Category, Account');
-            } else {
-                query = supabase
-                    .from('IncomingBankTransactions')
-                    .select('id, Date, Description, From, Amount, Category, Account');
-            }
-            // Apply filters
-            if (filters.date) query = query.eq('Date', filters.date);
-            if (filters.account) query = query.eq('Account', filters.account);
-            if (filters.category) query = query.eq('Category', filters.category);
+    // Fetch transactions
+    const {
+        data: transactionsRaw = [],
+        isLoading: transactionsLoading,
+        refetch: refetchTransactions
+    } = useQuery({
+        queryKey: ['transactions', { context, filters }],
+        queryFn: fetchTransactions,
+        keepPreviousData: true
+    });
 
-            const { data, error } = await query;
-            let filtered = data || [];
-            if (filters.currency) {
-                filtered = filtered.filter(tx => {
-                    const acc = accounts[tx.Account];
-                    return acc && acc.Currency === filters.currency;
-                });
-            }
-            if (error) setError('Failed to fetch transactions');
-            else setTransactions(filtered);
-            setLoading(false);
-        };
-        fetchTransactions();
-        // eslint-disable-next-line
-    }, [context, filters, accounts]);
+    // Filter by currency (since currency is in Accounts, not Bank)
+    const transactions = React.useMemo(() => {
+        if (!filters.currency) return transactionsRaw;
+        return transactionsRaw.filter(tx => accounts[tx.accountId]?.currency === filters.currency);
+    }, [transactionsRaw, filters.currency, accounts]);
 
     // Fetch user for topbar
     const { data: userData } = useQuery({
@@ -170,20 +185,58 @@ const OutgoingIncomingView = () => {
         cacheTime: 600000
     });
 
+    // Add payment mutation
+    const addPaymentMutation = useMutation({
+        mutationFn: async (data) => {
+            const { type, date, description, account, amount, category, party } = data;
+            let flow = type === 'outgoing' ? 'out' : 'in';
+            let payload = {
+                date,
+                description,
+                accountId: account,
+                amount: parseFloat(amount),
+                category,
+                flow,
+                payee: party
+            };
+            const { error } = await supabase.from('Bank').insert([payload]);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            setModalOpen(false);
+            queryClient.invalidateQueries(['transactions']);
+        },
+        onError: () => {
+            addToast('Failed to add payment', 'error');
+        }
+    });
+
+    // Unique filter options
+    const accountOptions = accountsArr.map(acc => ({
+        value: acc.id,
+        label: `${acc.bank} - ${acc.branch} - ${acc.accNumber} (${acc.currency})`
+    }));
+    const currencyOptions = [...new Set(accountsArr.map(acc => acc.currency))]
+        .filter(cur => !!cur)
+        .map(cur => ({ value: cur, label: cur.toUpperCase() }));
+    const categoryOptions = [
+        ...new Set(transactionsRaw.map(tx => tx.category))
+    ].map(cat => ({ value: cat, label: cat }));
+
     // Table columns
     const columns = [
-        { header: 'Date', accessor: 'Date' },
-        { header: 'Description', accessor: 'Description' },
-        { header: context === 'outgoing' ? 'To' : 'From', render: row => context === 'outgoing' ? row.To : row.From },
-        { header: 'Amount', accessor: 'Amount' },
-        { header: 'Category', accessor: 'Category' },
+        { header: 'Date', accessor: 'date' },
+        { header: 'Description', accessor: 'description' },
+        { header: context === 'outgoing' ? 'To' : 'From', render: row => row.payee },
+        { header: 'Amount', accessor: 'amount' },
+        { header: 'Category', accessor: 'category' },
         {
             header: 'AccNumber',
-            render: row => accounts[row.Account]?.AccNumber || '-'
+            render: row => accounts[row.accountId]?.accNumber || '-'
         },
         {
             header: 'Currency',
-            render: row => accounts[row.Account]?.Currency || '-'
+            render: row => accounts[row.accountId]?.currency || '-'
         }
     ];
 
@@ -200,35 +253,13 @@ const OutgoingIncomingView = () => {
         </button>
     ];
 
-    // Handle new payment submission
-    const handleNewPayment = async (data) => {
-        const { type, date, description, account, amount, category, party } = data;
-        let table = type === 'outgoing' ? 'OutgoingBankTransactions' : 'IncomingBankTransactions';
-        let payload = {
-            Date: date,
-            Description: description,
-            Account: account,
-            Amount: amount,
-            Category: category,
-        };
-        if (type === 'outgoing') payload.To = party;
-        else payload.From = party;
-
-        const { error } = await supabase.from(table).insert([payload]);
-        if (error) addToast('Failed to add payment', 'error');
-        else addToast('Payment added!', 'success');
-    };
-
-    // Unique filter options
-    const accountOptions = Object.values(accounts).map(acc => ({
-        value: acc.id,
-        label: `${acc.Bank} - ${acc.Branch} - ${acc.AccNumber} (${acc.Currency})`
-    }));
-    const currencyOptions = [...new Set(Object.values(accounts).map(acc => acc.Currency))]
-        .map(cur => ({ value: cur, label: cur.toUpperCase() }));
-    const categoryOptions = [
-        ...new Set(transactions.map(tx => tx.Category))
-    ].map(cat => ({ value: cat, label: cat }));
+    if (accountsLoading || transactionsLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                Loading...
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 bg-background min-h-screen relative">
@@ -238,7 +269,8 @@ const OutgoingIncomingView = () => {
                     open={modalOpen}
                     onClose={() => setModalOpen(false)}
                     accounts={accounts}
-                    onSubmit={handleNewPayment}
+                    onSubmit={addPaymentMutation.mutate}
+                    isLoading={addPaymentMutation.isLoading}
                 />
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                     {/* Inline filters including context */}

@@ -49,7 +49,7 @@ export const fetchBankTransactions = async () => {
     const { data, error } = await supabase
         .from('Bank')
         .select('*')
-        .eq('flow', 'in')
+        .eq('category', 'petty cash')
         .order('date', { ascending: false });
     if (error) return [];
     return data || [];

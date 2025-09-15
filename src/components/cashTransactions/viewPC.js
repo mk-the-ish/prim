@@ -51,7 +51,6 @@ const ViewPC = () => {
         payee: '',
         amount: '',
         category: 'petty cash',
-        reference: '',
         accountId: '',
     });
     const [accountOptions, setAccountOptions] = useState([]);
@@ -109,7 +108,6 @@ const ViewPC = () => {
                 payee: form.payee,
                 amount: parseFloat(form.amount),
                 category: form.category,
-                reference: form.reference,
                 accountId: form.accountId ? parseInt(form.accountId) : null,
                 flow: 'out'
             });
@@ -163,7 +161,12 @@ const ViewPC = () => {
                                     bankTransactions.map((tx, index) => (
                                         <tr key={index} className="hover:bg-gray-50 transition">
                                             <td className={tableCellClass}>{tx.date}</td>
-                                            <td className={tableCellClass}>{tx.bank}</td>
+                                            <td className={tableCellClass}>
+                                                {(() => {
+                                                    const acc = accountOptions.find(a => a.id === tx.accountId);
+                                                    return acc ? acc.bank : '-';
+                                                })()}
+                                            </td>
                                             <td className={tableCellClass}>{tx.description}</td>
                                             <td className={tableCellClass}>${Number(tx.amount).toFixed(2)}</td>
                                         </tr>

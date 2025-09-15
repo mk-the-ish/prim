@@ -21,10 +21,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AppThemeProvider } from '../contexts/ThemeContext.js'
 import { ToastProvider } from '../contexts/ToastContext.js';
-import AdminDashboard from './dashboard/AdminDashboard';
-import TeacherDashboard from './dashboard/TeacherDashboard';
 import ParentDashboard from './dashboard/ParentDashboard';
-import BursarDashboard from './dashboard/BursarDashboard';
 import { useUserRole } from './../contexts/useUserRole.js'
 import OutgoingIncomingView from './bankTransactions/view.js';
 import BulkInvoicing from './dashboard/bulkInvoicing.js';
@@ -32,6 +29,7 @@ import Vendors from './bankTransactions/vendors.js';
 import ViewInvoices from './bankTransactions/viewInvoices.js';
 import ViewPC from './cashTransactions/viewPC.js';
 import Cashbook from './financials/cashbook.js';
+import Dashboard from './dashboard/dashboard.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,7 +42,7 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { user, role, isLoading } = useUserRole();
+  const { user, isLoading } = useUserRole();
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen dark:bg-gray-900 text-white">Loading application...</div>;
@@ -54,13 +52,7 @@ function AppContent() {
     return <Login />;
   }
 
-  switch (role) {
-    case 'administrator': return <AdminDashboard />;
-    case 'teacher': return <TeacherDashboard />;
-    case 'parent': return <ParentDashboard />;
-    case 'bursar': return <BursarDashboard />;
-    default: return <div>Unknown role</div>;
-  }
+  return <Sidebar><Dashboard /></Sidebar>;
 }
 
 function AppRoutes() {
@@ -88,6 +80,7 @@ function AppRoutes() {
       <Route path="/vendors" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Vendors /></Sidebar></ProtectedRoute>} />
       <Route path="/view-pc" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><ViewPC /></Sidebar></ProtectedRoute>} />
       <Route path="/cashbook" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Cashbook /></Sidebar></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['administrator', 'bursar']}><Sidebar><Dashboard /></Sidebar></ProtectedRoute>} />
       <Route path="*" element={<ProtectedRoute allowedRoles={['administrator', 'bursar', 'teacher', 'parent']}><Sidebar><h1> 404 - Not Found</h1></Sidebar></ProtectedRoute>} />
     </Routes>
   );
